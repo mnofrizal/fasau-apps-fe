@@ -1,24 +1,21 @@
 "use client";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import PMScheduleDisplay from "@/components/pm-page/PMScheduleDisplay";
 
 export default function MaintenancePage() {
   return (
-    <main className="flex-1 p-16">
+    <main className="flex-1 p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-primary">
-          Previous Maintenance
+          Preventive Maintenance
         </h1>
         <p className="text-muted-foreground">
-          View history of maintenance activities
+          Jadwal kegiatan maintenance hari ini
         </p>
       </div>
 
-      <Card className="border-border bg-card dark:border-gray-600 dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle>Maintenance History</CardTitle>
-        </CardHeader>
-        {/* Maintenance history list will go here */}
-      </Card>
+      <div className="grid gap-6">
+        <PMScheduleDisplay />
+      </div>
     </main>
   );
 }
