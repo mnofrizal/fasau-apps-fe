@@ -155,3 +155,33 @@ export const todayEvents = [
     color: "purple",
   },
 ];
+
+export const acaraData = [
+  {
+    id: 1,
+    nama: "Meeting Project A",
+    tanggal: "7 Feb 2025",
+    waktu: "09:00",
+    lokasi: "Meeting Room 1",
+    status: "Upcoming",
+    keterangan: "Project kickoff meeting",
+  },
+  {
+    id: 2,
+    nama: "Training Safety",
+    tanggal: "8 Feb 2025",
+    waktu: "13:30",
+    lokasi: "Training Room",
+    status: "Completed",
+    keterangan: "Monthly safety training session",
+  },
+  {
+    id: 3,
+    nama: "Team Building",
+    tanggal: "9 Feb 2025",
+    waktu: "10:00",
+    lokasi: "Conference Hall",
+    status: "Upcoming",
+    keterangan: "Annual team building event",
+  },
+];

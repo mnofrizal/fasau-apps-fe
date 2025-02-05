@@ -36,6 +36,7 @@ export default function Navigation() {
                 { href: "/monitoring", label: "Monitoring" },
                 { href: "/dashboard/tasks", label: "Tasks" },
                 { href: "/dashboard/pm", label: "PM" },
+                { href: "/dashboard/acara", label: "Acara" },
               ].map((link) => (
                 <a
                   key={link.href}
