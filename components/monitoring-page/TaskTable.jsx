@@ -10,7 +10,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
-  // Triple the data for seamless looping with better content coverage
   const extendedData = useMemo(() => [...data, ...data, ...data], [data]);
 
   const columns = useMemo(
@@ -21,7 +20,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 80,
         maxSize: 80,
         cell: (info) => (
-          <div className="text-center text-xl font-medium text-gray-300">
+          <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -32,7 +31,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 250,
         maxSize: 250,
         cell: (info) => (
-          <div className="truncate text-xl font-medium text-white">
+          <div className="truncate text-xl font-medium text-gray-900 dark:text-white">
             {info.getValue()}
           </div>
         ),
@@ -43,7 +42,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 150,
         maxSize: 150,
         cell: (info) => (
-          <div className="whitespace-nowrap text-xl text-gray-300">
+          <div className="whitespace-nowrap text-xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -54,7 +53,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 150,
         maxSize: 150,
         cell: (info) => (
-          <div className="truncate text-xl text-gray-300">
+          <div className="truncate text-xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -68,13 +67,13 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
           const status = info.getValue();
           return (
             <div
-              className={`w-full inline-flex justify-center items-center px-4 py-1.5 rounded-full text-sm font-medium
+              className={`w-full inline-flex justify-center items-center px-4 py-1.5 rounded-full text-sm font-medium text-white
               ${
                 status === "Completed"
-                  ? "bg-green-600 text-white"
+                  ? "bg-green-600"
                   : status === "In Progress"
-                  ? "bg-blue-600 text-white"
-                  : "bg-yellow-600 text-white"
+                  ? "bg-blue-600"
+                  : "bg-yellow-600"
               }`}
             >
               {status}
@@ -88,7 +87,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 300,
         maxSize: 300,
         cell: (info) => (
-          <div className="truncate text-lg text-gray-300">
+          <div className="truncate text-lg text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -114,7 +113,6 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
   useEffect(() => {
     const startAnimation = async () => {
       if (!autoScroll) {
-        // Reset position when auto-scroll is turned off
         await controls.start({
           y: 0,
           transition: {
@@ -126,15 +124,12 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
       }
 
       if (isHovered) {
-        // Pause at current position when hovered
         controls.stop();
         return;
       }
 
-      // Calculate total scroll distance based on data length (57px is approximate row height)
       const scrollDistance = data.length * 57;
 
-      // Start infinite scrolling with seamless loop
       await controls.start({
         y: [0, -scrollDistance],
         transition: {
@@ -151,14 +146,14 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
   }, [controls, isHovered, autoScroll, data.length]);
 
   return (
-    <div className="border border-gray-600">
+    <div className="border border-gray-200 dark:border-gray-600">
       <ScrollArea
         className="h-[570px]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="relative" ref={containerRef}>
-          <div className="sticky top-0 z-50 border-b border-gray-600 bg-gray-700">
+          <div className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
             <table className="w-full table-fixed">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -169,7 +164,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
                         style={{
                           width: `${header.column.columnDef.minSize}px`,
                         }}
-                        className="px-4 py-4 text-left text-base font-semibold text-white"
+                        className="px-4 py-4 text-left text-base font-semibold text-gray-900 dark:text-white"
                       >
                         {flexRender(
                           header.column.columnDef.header,
@@ -195,7 +190,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
                   {table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className="border-b border-gray-600 hover:bg-gray-700"
+                      className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td

@@ -27,10 +27,12 @@ export default function TimeDisplay() {
   });
 
   return (
-    <Card className="border-none bg-gradient-to-br from-orange-600 to-orange-700 shadow-lg">
+    <Card className="border-none bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg dark:from-orange-600 dark:to-orange-700">
       <CardContent className="flex p-6">
         <div className="flex-1">
-          <div className="mb-1 text-lg text-orange-200">{month}</div>
+          <div className="mb-1 text-lg text-orange-100 dark:text-orange-200">
+            {month}
+          </div>
           <div className="mb-1 text-xl text-white">{weekday}</div>
           <div className="text-8xl font-bold text-white">{day}</div>
         </div>
