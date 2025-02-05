@@ -1,5 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { AcaraAPI } from "@/lib/api/acara";
 import {
   Table,
   TableBody,
@@ -26,7 +28,15 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronUp, Search, CalendarIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  CalendarIcon,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,10 +50,26 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DateRange } from "react-day-picker";
 import { EditAcaraDialog } from "./EditAcaraDialog";
 
-export function AcaraTable({ acara, onEditAcara }) {
+export function AcaraTable({ acara, onEditAcara, onDeleteAcara }) {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(8);
@@ -52,6 +78,9 @@ export function AcaraTable({ acara, onEditAcara }) {
   const [dateRange, setDateRange] = useState(undefined);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedAcara, setSelectedAcara] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteAcaraId, setDeleteAcaraId] = useState(null);
+  const { toast } = useToast();
 
   const filteredData = useMemo(() => {
     return acara.filter((item) => {
@@ -66,7 +95,7 @@ export function AcaraTable({ acara, onEditAcara }) {
 
       // Date range filter
       if (dateRange?.from && dateRange?.to) {
-        const acaraDate = parse(item.tanggal, "d MMM yyyy", new Date());
+        const acaraDate = new Date(item.dateTime);
         if (
           !isWithinInterval(acaraDate, {
             start: startOfDay(dateRange.from),
@@ -88,22 +117,28 @@ export function AcaraTable({ acara, onEditAcara }) {
       size: 40,
     },
     {
-      accessorKey: "nama",
+      accessorKey: "title",
       header: "Nama Acara",
       size: 300,
     },
     {
-      accessorKey: "tanggal",
+      accessorFn: (row) => row.dateTime,
       header: "Tanggal",
       size: 100,
+      cell: ({ getValue }) => {
+        return format(new Date(getValue()), "d MMM yyyy");
+      },
     },
     {
-      accessorKey: "waktu",
+      accessorFn: (row) => row.dateTime,
       header: "Waktu",
       size: 100,
+      cell: ({ getValue }) => {
+        return format(new Date(getValue()), "HH:mm");
+      },
     },
     {
-      accessorKey: "lokasi",
+      accessorKey: "location",
       header: "Lokasi",
       size: 150,
     },
@@ -114,9 +149,9 @@ export function AcaraTable({ acara, onEditAcara }) {
       cell: ({ row }) => {
         const status = row.original.status;
         const colorMap = {
-          Completed: "green",
-          Upcoming: "blue",
-          Cancelled: "red",
+          DONE: "green",
+          UPCOMING: "blue",
+          CANCEL: "red",
         };
         const color = colorMap[status] || "gray";
         return (
@@ -130,9 +165,49 @@ export function AcaraTable({ acara, onEditAcara }) {
       },
     },
     {
-      accessorKey: "keterangan",
+      accessorKey: "description",
       header: "Keterangan",
       size: 200,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      size: 80,
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedAcara(row.original);
+                    setEditDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600 focus:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteAcaraId(row.original.id);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 
@@ -183,9 +258,9 @@ export function AcaraTable({ acara, onEditAcara }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Upcoming">Upcoming</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
+              <SelectItem value="UPCOMING">Upcoming</SelectItem>
+              <SelectItem value="DONE">Done</SelectItem>
+              <SelectItem value="CANCEL">Cancelled</SelectItem>
             </SelectContent>
           </Select>
           <Popover>
@@ -357,6 +432,55 @@ export function AcaraTable({ acara, onEditAcara }) {
             </Button>
           </div>
         </div>
+
+        <AlertDialog open={deleteAcaraId !== null}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                acara and remove it from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteAcaraId(null);
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    setIsDeleting(true);
+                    await AcaraAPI.deleteAcara(deleteAcaraId);
+                    toast({
+                      title: "Acara deleted successfully",
+                      variant: "success",
+                    });
+                    onDeleteAcara?.();
+                  } catch (error) {
+                    toast({
+                      title: "Failed to delete acara",
+                      description: error.message,
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setIsDeleting(false);
+                    setDeleteAcaraId(null);
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <EditAcaraDialog
           acara={selectedAcara}

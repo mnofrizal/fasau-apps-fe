@@ -32,9 +32,9 @@ export default function Navigation() {
           <div className="hidden flex-1 justify-center sm:flex">
             <div className="flex h-12 items-center space-x-8">
               {[
-                { href: "/dashboard", label: "Dashboard" },
                 { href: "/monitoring", label: "Monitoring" },
                 { href: "/dashboard/tasks", label: "Tasks" },
+                { href: "/dashboard/recent", label: "Recent" },
                 { href: "/dashboard/pm", label: "PM" },
                 { href: "/dashboard/acara", label: "Acara" },
               ].map((link) => (

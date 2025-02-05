@@ -357,11 +357,11 @@ export const pmSchedule = {
     ],
     KAMIS: [
       { assetId: 4, teamId: 4 },
-      { assetId: 9, teamId: 5 },
+      { assetId: 9, teamId: 1 },
     ],
     JUMAT: [
       { assetId: 5, teamId: 1 },
-      { assetId: 10, teamId: 6 },
+      { assetId: 10, teamId: 2 },
     ],
   },
   week2: {
@@ -409,8 +409,26 @@ export const pmSchedule = {
     ],
   },
   week4: {
-    SENIN: [{ assetId: 31, teamId: 3 }],
-    SELASA: [{ assetId: 32, teamId: 4 }],
+    SENIN: [
+      { assetId: 31, teamId: 3 },
+      { assetId: 1, teamId: 4 },
+    ],
+    SELASA: [
+      { assetId: 32, teamId: 4 },
+      { assetId: 2, teamId: 1 },
+    ],
+    RABU: [
+      { assetId: 1, teamId: 1 },
+      { assetId: 3, teamId: 2 },
+    ],
+    KAMIS: [
+      { assetId: 2, teamId: 2 },
+      { assetId: 4, teamId: 3 },
+    ],
+    JUMAT: [
+      { assetId: 3, teamId: 3 },
+      { assetId: 1, teamId: 4 },
+    ],
   },
 };
 

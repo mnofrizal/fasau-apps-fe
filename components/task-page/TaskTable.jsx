@@ -1,5 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { TasksAPI } from "@/lib/api/tasks";
 import {
   Table,
   TableBody,
@@ -13,6 +15,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   format,
   isWithinInterval,
@@ -28,7 +47,15 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronUp, Search, CalendarIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  CalendarIcon,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -45,7 +72,7 @@ import {
 import { DateRange } from "react-day-picker";
 import { EditTaskDialog } from "./EditTaskDialog";
 
-export function TaskTable({ tasks, onEditTask }) {
+export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(8);
@@ -56,11 +83,14 @@ export function TaskTable({ tasks, onEditTask }) {
   const [hideCompleted, setHideCompleted] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTaskId, setDeleteTaskId] = useState(null);
+  const { toast } = useToast();
 
   const filteredData = useMemo(() => {
     return tasks.filter((task) => {
       // Hide completed filter
-      if (hideCompleted && task.status === "Completed") {
+      if (hideCompleted && task.status === "COMPLETED") {
         return false;
       }
 
@@ -106,25 +136,28 @@ export function TaskTable({ tasks, onEditTask }) {
       size: 40,
     },
     {
-      accessorKey: "name",
+      accessorKey: "title",
       header: "Uraian",
       size: 300,
     },
     {
-      accessorKey: "startDate",
+      accessorKey: "createdAt",
       header: "Start",
       size: 100,
+      cell: ({ row }) => {
+        return format(new Date(row.original.createdAt), "d MMM yyyy");
+      },
     },
     {
-      accessorKey: "kategori",
+      accessorKey: "category",
       header: "Kategori",
       size: 120,
       cell: ({ row }) => {
-        const kategori = row.original.kategori;
+        const kategori = row.original.category;
         const colorMap = {
-          Maintenance: "blue",
-          Safety: "yellow",
-          IT: "purple",
+          MEMO: "blue",
+          TASK: "yellow",
+          LAPORAN: "purple",
         };
         const color = colorMap[kategori] || "gray";
         return (
@@ -144,18 +177,18 @@ export function TaskTable({ tasks, onEditTask }) {
       cell: ({ row }) => {
         const status = row.original.status;
         const colorMap = {
-          Completed: "green",
-          "In Progress": "yellow",
-          Pending: "orange",
+          COMPLETED: "green",
+          INPROGRESS: "blue",
+          CANCEL: "red",
         };
         const color = colorMap[status] || "gray";
         return (
-          <Badge
+          <div
             variant="outline"
-            className={`bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-0.5 rounded-md transition-colors hover:bg-${color}-500/20`}
+            className={` text-center bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-1.5 rounded-md transition-colors hover:bg-${color}-500/20`}
           >
             {status}
-          </Badge>
+          </div>
         );
       },
     },
@@ -163,6 +196,46 @@ export function TaskTable({ tasks, onEditTask }) {
       accessorKey: "keterangan",
       header: "Keterangan",
       size: 200,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      size: 80,
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTask(row.original);
+                    setEditDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600 focus:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTaskId(row.original.id);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
     },
   ];
 
@@ -221,9 +294,9 @@ export function TaskTable({ tasks, onEditTask }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="CANCEL">Cancel</SelectItem>
+              <SelectItem value="INPROGRESS">In Progress</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -232,9 +305,9 @@ export function TaskTable({ tasks, onEditTask }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Maintenance">Maintenance</SelectItem>
-              <SelectItem value="Safety">Safety</SelectItem>
-              <SelectItem value="IT">IT</SelectItem>
+              <SelectItem value="memo">Memo</SelectItem>
+              <SelectItem value="laporan">Laporan</SelectItem>
+              <SelectItem value="task">Tugas</SelectItem>
             </SelectContent>
           </Select>
           <Popover>
@@ -406,6 +479,55 @@ export function TaskTable({ tasks, onEditTask }) {
             </Button>
           </div>
         </div>
+
+        <AlertDialog open={deleteTaskId !== null}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                task and remove it from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteTaskId(null);
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    setIsDeleting(true);
+                    await TasksAPI.deleteTask(deleteTaskId);
+                    toast({
+                      title: "Task deleted successfully",
+                      variant: "success",
+                    });
+                    onDeleteTask?.();
+                  } catch (error) {
+                    toast({
+                      title: "Failed to delete task",
+                      description: error.message,
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setIsDeleting(false);
+                    setDeleteTaskId(null);
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <EditTaskDialog
           task={selectedTask}

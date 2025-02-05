@@ -22,12 +22,12 @@ import { CalendarIcon } from "lucide-react";
 
 export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
   const [formData, setFormData] = useState({
-    nama: "",
-    tanggal: new Date(),
-    waktu: "",
-    lokasi: "",
+    title: "",
+    dateTime: new Date(),
+    location: "",
     status: "",
-    keterangan: "",
+    description: "",
+    category: "",
     sendWa: false,
   });
 
@@ -35,12 +35,12 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
   useEffect(() => {
     if (acara) {
       setFormData({
-        nama: acara.nama,
-        tanggal: new Date(acara.tanggal),
-        waktu: acara.waktu,
-        lokasi: acara.lokasi,
+        title: acara.title,
+        dateTime: new Date(acara.dateTime),
+        location: acara.location,
         status: acara.status,
-        keterangan: acara.keterangan || "",
+        description: acara.description || "",
+        category: acara.category || "Meeting",
         sendWa: acara.sendWa || false,
       });
     }
@@ -48,7 +48,7 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
 
   // Handle status change effect on sendWa
   useEffect(() => {
-    if (formData.status === "Completed") {
+    if (formData.status === "DONE") {
       setFormData((prev) => ({
         ...prev,
         sendWa: false,
@@ -60,12 +60,12 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
     e.preventDefault();
     const updatedAcara = {
       ...acara,
-      nama: formData.nama,
-      tanggal: format(formData.tanggal, "d MMM yyyy"),
-      waktu: formData.waktu,
-      lokasi: formData.lokasi,
+      title: formData.title,
+      dateTime: formData.dateTime.toISOString(),
+      location: formData.location,
       status: formData.status,
-      keterangan: formData.keterangan,
+      description: formData.description,
+      category: formData.category,
       sendWa: formData.sendWa,
     };
 
@@ -81,65 +81,74 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="nama">Event Name</Label>
+            <Label htmlFor="title">Event Name</Label>
             <Input
-              id="nama"
+              id="title"
               placeholder="Enter event name"
-              value={formData.nama}
+              value={formData.title}
               onChange={(e) =>
-                setFormData({ ...formData, nama: e.target.value })
+                setFormData({ ...formData, title: e.target.value })
               }
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tanggal">Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    !formData.tanggal && "text-muted-foreground"
-                  }`}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.tanggal ? (
-                    format(formData.tanggal, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.tanggal}
-                  onSelect={(date) =>
-                    setFormData({ ...formData, tanggal: date })
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <Label>Date & Time</Label>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`flex-1 justify-start text-left font-normal ${
+                      !formData.dateTime && "text-muted-foreground"
+                    }`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.dateTime ? (
+                      format(formData.dateTime, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.dateTime}
+                    onSelect={(date) => {
+                      if (date) {
+                        const currentDateTime = formData.dateTime;
+                        // Keep the current time when changing date
+                        date.setHours(currentDateTime.getHours());
+                        date.setMinutes(currentDateTime.getMinutes());
+                        setFormData({ ...formData, dateTime: date });
+                      }
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={format(formData.dateTime, "HH:mm")}
+                onChange={(e) => {
+                  const [hours, minutes] = e.target.value.split(":");
+                  const newDateTime = new Date(formData.dateTime);
+                  newDateTime.setHours(parseInt(hours, 10));
+                  newDateTime.setMinutes(parseInt(minutes, 10));
+                  setFormData({ ...formData, dateTime: newDateTime });
+                }}
+                className="w-[150px]"
+              />
+            </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="waktu">Time</Label>
+            <Label htmlFor="location">Location</Label>
             <Input
-              id="waktu"
-              type="time"
-              value={formData.waktu}
-              onChange={(e) =>
-                setFormData({ ...formData, waktu: e.target.value })
-              }
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="lokasi">Location</Label>
-            <Input
-              id="lokasi"
+              id="location"
               placeholder="Enter event location"
-              value={formData.lokasi}
+              value={formData.location}
               onChange={(e) =>
-                setFormData({ ...formData, lokasi: e.target.value })
+                setFormData({ ...formData, location: e.target.value })
               }
             />
           </div>
@@ -148,49 +157,45 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
             <div className="grid grid-cols-3 gap-2">
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-blue-500/20 hover:text-blue-500 ${
-                  formData.status === "Upcoming"
+                  formData.status === "UPCOMING"
                     ? "bg-blue-500/10 text-blue-500 ring-1 ring-blue-500"
                     : ""
                 }`}
-                onClick={() => setFormData({ ...formData, status: "Upcoming" })}
+                onClick={() => setFormData({ ...formData, status: "UPCOMING" })}
               >
                 Upcoming
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-green-500/20 hover:text-green-500 ${
-                  formData.status === "Completed"
+                  formData.status === "DONE"
                     ? "bg-green-500/10 text-green-500 ring-1 ring-green-500"
                     : ""
                 }`}
-                onClick={() =>
-                  setFormData({ ...formData, status: "Completed" })
-                }
+                onClick={() => setFormData({ ...formData, status: "DONE" })}
               >
-                Completed
+                Done
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-orange-500/20 hover:text-red-500 ${
-                  formData.status === "Cancelled"
+                  formData.status === "CANCEL"
                     ? "bg-orange-500/10 text-red-500 ring-1 ring-red-500"
                     : ""
                 }`}
-                onClick={() =>
-                  setFormData({ ...formData, status: "Cancelled" })
-                }
+                onClick={() => setFormData({ ...formData, status: "CANCEL" })}
               >
-                Cancelled
+                Cancel
               </Card>
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="keterangan">Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="keterangan"
+              id="description"
               placeholder="Enter event description"
               className="h-20"
-              value={formData.keterangan}
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, keterangan: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
             />
           </div>
@@ -202,7 +207,7 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, sendWa: checked })
                 }
-                disabled={formData.status === "Completed"}
+                disabled={formData.status === "DONE"}
               />
               <Label htmlFor="sendWa">Info ke WA Grup</Label>
             </div>
@@ -214,10 +219,9 @@ export function EditAcaraDialog({ acara, open, onOpenChange, onEditAcara }) {
                 onClick={handleSubmit}
                 className="bg-primary hover:bg-primary/90"
                 disabled={
-                  !formData.nama ||
-                  !formData.tanggal ||
-                  !formData.waktu ||
-                  !formData.lokasi ||
+                  !formData.title ||
+                  !formData.dateTime ||
+                  !formData.location ||
                   !formData.status
                 }
               >

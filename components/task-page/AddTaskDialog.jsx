@@ -7,6 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { TasksAPI } from "@/lib/api/tasks";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -23,32 +25,56 @@ import { Switch } from "../ui/switch";
 
 export function AddTaskDialog({ onAddTask }) {
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    kategori: "",
+    title: "",
+    category: "",
     status: "",
     keterangan: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newTask = {
-      id: Date.now(),
-      name: formData.name,
-      startDate: format(new Date(), "d MMM yyyy"),
-      kategori: formData.kategori,
-      status: formData.status,
-      keterangan: formData.keterangan,
-    };
+    setIsLoading(true);
+    try {
+      const response = await TasksAPI.createTask({
+        title: formData.title,
+        category: formData.category.toUpperCase(),
+        status: formData.status.toUpperCase(),
+        keterangan: formData.keterangan,
+      });
 
-    onAddTask(newTask);
-    setOpen(false);
-    setFormData({
-      name: "",
-      kategori: "",
-      status: "",
-      keterangan: "",
-    });
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Task created successfully",
+        });
+        onAddTask(response.data);
+        setOpen(false);
+        setFormData({
+          title: "",
+          category: "",
+          status: "",
+          keterangan: "",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.message || "Failed to create task",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred while creating the task",
+      });
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,30 +88,31 @@ export function AddTaskDialog({ onAddTask }) {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Task Name</Label>
+            <Label htmlFor="title">Task Title</Label>
             <Input
-              id="name"
-              placeholder="Enter task name"
-              value={formData.name}
+              id="title"
+              placeholder="Enter task title"
+              value={formData.title}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, title: e.target.value })
               }
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="category">Category</Label>
             <Select
+              value={formData.category}
               onValueChange={(value) =>
-                setFormData({ ...formData, kategori: value })
+                setFormData({ ...formData, category: value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="memo">Memo</SelectItem>
-                <SelectItem value="rutin">Task</SelectItem>
-                <SelectItem value="cm">Laporan</SelectItem>
+                <SelectItem value="MEMO">Memo</SelectItem>
+                <SelectItem value="TASK">Task</SelectItem>
+                <SelectItem value="LAPORAN">Laporan</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -94,35 +121,35 @@ export function AddTaskDialog({ onAddTask }) {
             <div className="grid grid-cols-3 gap-2">
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-blue-500/20 hover:text-blue-500 ${
-                  formData.status === "In Progress"
+                  formData.status === "INPROGRESS"
                     ? "bg-blue-500/10 text-blue-500 ring-1 ring-blue-500"
                     : ""
                 }`}
                 onClick={() =>
-                  setFormData({ ...formData, status: "In Progress" })
+                  setFormData({ ...formData, status: "INPROGRESS" })
                 }
               >
                 In Progress
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-green-500/20 hover:text-green-500 ${
-                  formData.status === "Completed"
+                  formData.status === "COMPLETED"
                     ? "bg-green-500/10 text-green-500 ring-1 ring-green-500"
                     : ""
                 }`}
                 onClick={() =>
-                  setFormData({ ...formData, status: "Completed" })
+                  setFormData({ ...formData, status: "COMPLETED" })
                 }
               >
                 Completed
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-orange-500/20 hover:text-red-500 ${
-                  formData.status === "Cancel"
+                  formData.status === "CANCEL"
                     ? "bg-orange-500/10 text-red-500 ring-1 ring-red-500"
                     : ""
                 }`}
-                onClick={() => setFormData({ ...formData, status: "Cancel" })}
+                onClick={() => setFormData({ ...formData, status: "CANCEL" })}
               >
                 Cancel
               </Card>
@@ -159,10 +186,13 @@ export function AddTaskDialog({ onAddTask }) {
                 onClick={handleSubmit}
                 className="bg-primary hover:bg-primary/90"
                 disabled={
-                  !formData.name || !formData.kategori || !formData.status
+                  isLoading ||
+                  !formData.title ||
+                  !formData.category ||
+                  !formData.status
                 }
               >
-                Save Task
+                {isLoading ? "Saving..." : "Save Task"}
               </Button>
             </div>
           </div>

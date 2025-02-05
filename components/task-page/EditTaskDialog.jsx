@@ -6,6 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { TasksAPI } from "@/lib/api/tasks";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -20,50 +22,61 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "../ui/switch";
 
 export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    kategori: "",
+    title: "",
+    category: "",
     status: "",
     keterangan: "",
-    sendWa: false,
   });
 
-  // Initialize form data when task changes
   useEffect(() => {
     if (task) {
       setFormData({
-        name: task.name,
-        kategori: task.kategori,
+        title: task.title,
+        category: task.category,
         status: task.status,
         keterangan: task.keterangan || "",
-        sendWa: task.sendWa || false,
       });
     }
   }, [task]);
 
-  // Handle status change effect on sendWa
-  useEffect(() => {
-    if (formData.status === "Completed") {
-      setFormData((prev) => ({
-        ...prev,
-        sendWa: false,
-      }));
-    }
-  }, [formData.status]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const updatedTask = {
-      ...task,
-      name: formData.name,
-      kategori: formData.kategori,
-      status: formData.status,
-      keterangan: formData.keterangan,
-      sendWa: formData.sendWa,
-    };
+    setIsLoading(true);
+    try {
+      const response = await TasksAPI.updateTask(task.id, {
+        title: formData.title,
+        category: formData.category,
+        status: formData.status,
+        keterangan: formData.keterangan,
+      });
 
-    onEditTask(updatedTask);
-    onOpenChange(false);
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Task updated successfully",
+        });
+        onEditTask(response.data);
+        onOpenChange(false);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: response.message || "Failed to update task",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An error occurred while updating the task",
+      });
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,31 +87,31 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Task Name</Label>
+            <Label htmlFor="title">Task Title</Label>
             <Input
-              id="name"
-              placeholder="Enter task name"
-              value={formData.name}
+              id="title"
+              placeholder="Enter task title"
+              value={formData.title}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, title: e.target.value })
               }
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="category">Category</Label>
             <Select
-              value={formData.kategori}
+              value={formData.category}
               onValueChange={(value) =>
-                setFormData({ ...formData, kategori: value })
+                setFormData({ ...formData, category: value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Maintenance">Maintenance</SelectItem>
-                <SelectItem value="Safety">Safety</SelectItem>
-                <SelectItem value="IT">IT</SelectItem>
+                <SelectItem value="MEMO">Memo</SelectItem>
+                <SelectItem value="TASK">Task</SelectItem>
+                <SelectItem value="LAPORAN">Laporan</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -107,37 +120,37 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
             <div className="grid grid-cols-3 gap-2">
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-blue-500/20 hover:text-blue-500 ${
-                  formData.status === "In Progress"
+                  formData.status === "INPROGRESS"
                     ? "bg-blue-500/10 text-blue-500 ring-1 ring-blue-500"
                     : ""
                 }`}
                 onClick={() =>
-                  setFormData({ ...formData, status: "In Progress" })
+                  setFormData({ ...formData, status: "INPROGRESS" })
                 }
               >
                 In Progress
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-green-500/20 hover:text-green-500 ${
-                  formData.status === "Completed"
+                  formData.status === "COMPLETED"
                     ? "bg-green-500/10 text-green-500 ring-1 ring-green-500"
                     : ""
                 }`}
                 onClick={() =>
-                  setFormData({ ...formData, status: "Completed" })
+                  setFormData({ ...formData, status: "COMPLETED" })
                 }
               >
                 Completed
               </Card>
               <Card
                 className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-orange-500/20 hover:text-red-500 ${
-                  formData.status === "Pending"
+                  formData.status === "CANCEL"
                     ? "bg-orange-500/10 text-red-500 ring-1 ring-red-500"
                     : ""
                 }`}
-                onClick={() => setFormData({ ...formData, status: "Pending" })}
+                onClick={() => setFormData({ ...formData, status: "CANCEL" })}
               >
-                Pending
+                Cancel
               </Card>
             </div>
           </div>
@@ -161,7 +174,6 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, sendWa: checked })
                 }
-                disabled={formData.status === "Completed"}
               />
               <Label htmlFor="sendWa">Info ke WA Grup</Label>
             </div>
@@ -173,10 +185,13 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
                 onClick={handleSubmit}
                 className="bg-primary hover:bg-primary/90"
                 disabled={
-                  !formData.name || !formData.kategori || !formData.status
+                  isLoading ||
+                  !formData.title ||
+                  !formData.category ||
+                  !formData.status
                 }
               >
-                Save Changes
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
