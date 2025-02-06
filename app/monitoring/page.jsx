@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect } from "react";
 import Navigation from "../../components/layout/Navigation";
 import TaskTable from "../../components/monitoring-page/TaskTable";
 import { Switch } from "@/components/ui/switch";
@@ -28,9 +28,57 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { AcaraAPI } from "@/lib/api/acara";
+import { TasksAPI } from "@/lib/api/tasks";
 
 export default function MonitoringPage() {
   const [autoScroll, setAutoScroll] = useState(true);
+  const [acara, setAcara] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await TasksAPI.getAllTasks();
+      if (response.success) {
+        setTasks(response.data);
+      } else {
+        setError(response.message || "Failed to fetch tasks");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching tasks");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAcara();
+  }, []);
+
+  const fetchAcara = async () => {
+    try {
+      setIsLoading(true);
+      const response = await AcaraAPI.getAllAcara();
+      if (response.success) {
+        setAcara(response.data);
+      } else {
+        setError(response.message || "Failed to fetch acara");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching acara");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
@@ -67,7 +115,7 @@ export default function MonitoringPage() {
                         Total Tasks:{" "}
                       </span>
                       <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {monitoringTasks.length}
+                        {tasks.length}
                       </span>
                     </div>
                     <div className="rounded-lg bg-green-100 px-4 py-2 dark:bg-green-600/20">
@@ -76,16 +124,15 @@ export default function MonitoringPage() {
                       </span>
                       <span className="text-lg font-semibold text-green-700 dark:text-white">
                         {
-                          monitoringTasks.filter(
-                            (task) => task.status === "Completed"
-                          ).length
+                          tasks.filter((task) => task.status === "COMPLETED")
+                            .length
                         }
                       </span>
                     </div>
                   </div>
                 </div>
                 <TaskTable
-                  data={monitoringTasks}
+                  data={tasks}
                   autoScroll={autoScroll}
                   onToggleScroll={setAutoScroll}
                 />
@@ -210,17 +257,21 @@ export default function MonitoringPage() {
                   Acara Hari Ini
                 </h2>
                 <div className="space-y-4">
-                  {todayEvents.map((event, index) => (
+                  {acara.map((event, index) => (
                     <div
                       key={index}
                       className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-600 dark:bg-gray-700"
                     >
                       <div className="mb-2 flex items-center space-x-3">
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full bg-${event.color}-600`}
+                          className={`flex h-16 w-16 items-center justify-center rounded-full bg-blue-600`}
                         >
                           <span className="text-lg font-semibold text-white">
-                            {event.time}
+                            {new Date(event.dateTime).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}
                           </span>
                         </div>
                         <div>

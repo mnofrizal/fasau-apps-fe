@@ -26,8 +26,8 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         ),
       },
       {
-        header: "Task Name",
-        accessorKey: "name",
+        header: "Nama Pekerjaan",
+        accessorKey: "title",
         minSize: 250,
         maxSize: 250,
         cell: (info) => (
@@ -38,18 +38,26 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
       },
       {
         header: "Start Date",
-        accessorKey: "startDate",
+        accessorKey: "createdAt",
         minSize: 150,
         maxSize: 150,
-        cell: (info) => (
-          <div className="whitespace-nowrap text-xl text-gray-600 dark:text-gray-300">
-            {info.getValue()}
-          </div>
-        ),
+        cell: (info) => {
+          const date = new Date(info.getValue());
+          const formattedDate = date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+          return (
+            <div className="whitespace-nowrap text-xl text-gray-600 dark:text-gray-300">
+              {formattedDate}
+            </div>
+          );
+        },
       },
       {
         header: "Kategori",
-        accessorKey: "kategori",
+        accessorKey: "category",
         minSize: 150,
         maxSize: 150,
         cell: (info) => (
@@ -69,10 +77,12 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
             <div
               className={`w-full inline-flex justify-center items-center px-4 py-1.5 rounded-full text-sm font-medium text-white
               ${
-                status === "Completed"
+                status === "COMPLETED"
                   ? "bg-green-600"
-                  : status === "In Progress"
+                  : status === "INPROGRESS"
                   ? "bg-blue-600"
+                  : status === "CANCEL"
+                  ? "bg-red-600"
                   : "bg-yellow-600"
               }`}
             >
