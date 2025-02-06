@@ -20,7 +20,7 @@ export default function Navigation() {
           <div className="flex-shrink-0">
             <span
               className={cn(
-                "text-3xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
+                "text-4xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
                 pacifico.className
               )}
             >

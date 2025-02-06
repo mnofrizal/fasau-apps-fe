@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,8 +10,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { recentTaskReports } from "@/contants/mockData";
+import { getReports, deleteReport, updateReport } from "@/lib/api/reports";
 import Image from "next/image";
 import {
   flexRender,
@@ -56,25 +75,53 @@ export default function RecentTasksPage() {
   const [pageIndex, setPageIndex] = useState(0);
   const [kategoriFilter, setKategoriFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [reports, setReports] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [reportToEdit, setReportToEdit] = useState(null);
+  const [editForm, setEditForm] = useState({
+    description: "",
+    pelapor: "",
+    phone: "",
+    category: "",
+  });
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await getReports();
+        if (response.success) {
+          setReports(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   const filteredData = useMemo(() => {
-    return recentTaskReports.filter((item) => {
+    return reports.filter((item) => {
       // Kategori filter
-      if (kategoriFilter !== "all") {
-        const itemKategori = item.id % 2 === 0 ? "PM" : "CM";
-        if (itemKategori !== kategoriFilter) return false;
+      if (kategoriFilter !== "all" && item.category !== kategoriFilter) {
+        return false;
       }
 
       // Date range filter
       if (dateRange?.from && dateRange?.to) {
-        // This is a simplified date check. In a real app, you'd parse actual dates
-        // For demo, we'll just pass all items when date range is selected
-        // You would implement proper date comparison here
+        const reportDate = new Date(item.createdAt);
+        const from = new Date(dateRange.from);
+        const to = new Date(dateRange.to);
+        if (reportDate < from || reportDate > to) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [recentTaskReports, kategoriFilter, dateRange]);
+  }, [reports, kategoriFilter, dateRange]);
 
   const columns = [
     {
@@ -83,44 +130,67 @@ export default function RecentTasksPage() {
       size: 40,
     },
     {
-      accessorKey: "image",
+      accessorKey: "evidence",
       header: "Eviden",
-      size: 80,
-      cell: ({ row }) => (
-        <div className="relative h-10 w-10 overflow-hidden rounded-full">
-          <Image
-            src={row.original.image}
-            alt={`Evidence ${row.original.id}`}
-            fill
-            className="object-cover"
-          />
-        </div>
-      ),
+      size: 100,
+      cell: ({ row }) => {
+        const isPDF = row.original.evidence.toLowerCase().endsWith(".pdf");
+
+        if (isPDF) {
+          return (
+            <div className="flex items-center">
+              <Button
+                variant="link"
+                className="h-auto p-0 font-normal"
+                onClick={() => window.open(row.original.evidence, "_blank")}
+              >
+                View PDF
+              </Button>
+            </div>
+          );
+        }
+
+        return row.original.evidence ? (
+          <div className="relative h-16 w-16 overflow-hidden rounded-md">
+            <Image
+              src={row.original.evidence}
+              alt={`Evidence for ${row.original.description}`}
+              fill
+              style={{ objectFit: "cover" }}
+              sizes="64px"
+              onClick={() => window.open(row.original.evidence, "_blank")}
+              className="cursor-pointer transition-opacity hover:opacity-80"
+            />
+          </div>
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-md bg-gray-200 text-gray-600">
+            No Image
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "task",
+      accessorKey: "description",
       header: "Uraian",
       size: 200,
     },
     {
-      accessorKey: "employee",
+      accessorKey: "pelapor",
       header: "Pelapor",
       size: 150,
     },
     {
-      accessorKey: "time",
+      accessorKey: "createdAt",
       header: "Waktu Lapor",
       size: 120,
+      cell: ({ row }) => {
+        return format(new Date(row.original.createdAt), "dd MMM yyyy HH:mm");
+      },
     },
     {
-      accessorKey: "status",
+      accessorKey: "category",
       header: "Kategori",
       size: 100,
-      cell: ({ row }) => {
-        // Randomly assign PM or CM for demonstration
-        const kategori = row.original.id % 2 === 0 ? "PM" : "CM";
-        return kategori;
-      },
     },
     {
       id: "actions",
@@ -140,9 +210,27 @@ export default function RecentTasksPage() {
                 View Details
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => console.log("Edit", row.original)}
+                onClick={() => {
+                  setReportToEdit(row.original);
+                  setEditForm({
+                    description: row.original.description,
+                    pelapor: row.original.pelapor,
+                    phone: row.original.phone,
+                    category: row.original.category,
+                  });
+                  setEditDialogOpen(true);
+                }}
               >
                 Edit Task
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => {
+                  setReportToDelete(row.original);
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                Delete Report
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -173,16 +261,16 @@ export default function RecentTasksPage() {
   return (
     <main className="flex-1 space-y-6 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-primary">Recent Tasks</h1>
+        <h1 className="text-3xl font-bold text-primary">Recent Reports</h1>
         <p className="text-muted-foreground">
-          View your latest task activities
+          View your latest report activities
         </p>
       </div>
       <div className="flex justify-between">
         <div className="relative w-64">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search tasks..."
+            placeholder="Search reports..."
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-8"
@@ -332,7 +420,7 @@ export default function RecentTasksPage() {
           <div className="flex items-center space-x-6">
             <span className="text-sm text-muted-foreground">
               Showing {table.getRowModel().rows.length} of {filteredData.length}{" "}
-              tasks
+              reports
             </span>
             <div className="flex items-center space-x-2">
               <Button
@@ -355,6 +443,131 @@ export default function RecentTasksPage() {
           </div>
         </div>
       </Card>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the report. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={async () => {
+                try {
+                  await deleteReport(reportToDelete.id);
+                  setDeleteDialogOpen(false);
+                  // Refresh the reports list
+                  const response = await getReports();
+                  if (response.success) {
+                    setReports(response.data);
+                  }
+                } catch (error) {
+                  console.error("Error deleting report:", error);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Report</DialogTitle>
+            <DialogDescription>
+              Make changes to the report details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Uraian
+              </Label>
+              <textarea
+                id="description"
+                className="col-span-3 min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="pelapor" className="text-right">
+                Pelapor
+              </Label>
+              <Input
+                id="pelapor"
+                className="col-span-3"
+                value={editForm.pelapor}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, pelapor: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="phone"
+                className="col-span-3"
+                value={editForm.phone}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, phone: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                Category
+              </Label>
+              <Select
+                value={editForm.category}
+                onValueChange={(value) =>
+                  setEditForm((prev) => ({ ...prev, category: value }))
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PM">PM</SelectItem>
+                  <SelectItem value="CM">CM</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                try {
+                  await updateReport(reportToEdit.id, editForm);
+                  setEditDialogOpen(false);
+                  // Refresh the reports list
+                  const response = await getReports();
+                  if (response.success) {
+                    setReports(response.data);
+                  }
+                } catch (error) {
+                  console.error("Error updating report:", error);
+                }
+              }}
+            >
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

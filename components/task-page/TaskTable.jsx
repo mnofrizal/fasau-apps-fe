@@ -131,9 +131,10 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
 
   const columns = [
     {
-      accessorKey: "id",
+      id: "index",
       header: "No",
       size: 40,
+      cell: (info) => info.row.index + 1,
     },
     {
       accessorKey: "title",
@@ -172,7 +173,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: () => <div className="w-full text-center">Status</div>,
       size: 120,
       cell: ({ row }) => {
         const status = row.original.status;
@@ -185,7 +186,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
         return (
           <div
             variant="outline"
-            className={` text-center bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-1.5 rounded-md transition-colors hover:bg-${color}-500/20`}
+            className={`text-center bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-1.5 rounded-md transition-colors hover:bg-${color}-500/20`}
           >
             {status}
           </div>

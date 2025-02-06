@@ -21,17 +21,17 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         maxSize: 80,
         cell: (info) => (
           <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
-            {info.getValue()}
+            {info.row.index + 1}
           </div>
         ),
       },
       {
         header: "Nama Pekerjaan",
         accessorKey: "title",
-        minSize: 250,
-        maxSize: 250,
+        minSize: 280,
+        maxSize: 280,
         cell: (info) => (
-          <div className="truncate text-xl font-medium text-gray-900 dark:text-white">
+          <div className="whitespace-normal text-2xl font-medium text-gray-900 dark:text-white">
             {info.getValue()}
           </div>
         ),
@@ -49,7 +49,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
             year: "numeric",
           });
           return (
-            <div className="whitespace-nowrap text-xl text-gray-600 dark:text-gray-300">
+            <div className="whitespace-nowrap text-2xl text-gray-600 dark:text-gray-300">
               {formattedDate}
             </div>
           );
@@ -58,10 +58,10 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
       {
         header: "Kategori",
         accessorKey: "category",
-        minSize: 150,
-        maxSize: 150,
+        minSize: 120,
+        maxSize: 120,
         cell: (info) => (
-          <div className="truncate text-xl text-gray-600 dark:text-gray-300">
+          <div className="truncate text-2xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -97,7 +97,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 300,
         maxSize: 300,
         cell: (info) => (
-          <div className="truncate text-lg text-gray-600 dark:text-gray-300">
+          <div className="truncate text-xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -158,7 +158,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
   return (
     <div className="border border-gray-200 dark:border-gray-600">
       <ScrollArea
-        className="h-[570px]"
+        className="h-[610px]"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
