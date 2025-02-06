@@ -11,10 +11,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
+export default function TaskTable({
+  data,
+  autoScroll = true,
+  onToggleScroll,
+  showInProgressOnly = false,
+}) {
   const filteredData = useMemo(() => {
-    return [...data];
-  }, [data]);
+    let filtered = [...data];
+
+    // Filter for in-progress tasks if enabled
+    if (showInProgressOnly) {
+      filtered = filtered.filter((task) => task.status === "INPROGRESS");
+    }
+
+    // Sort by category
+    filtered.sort((a, b) => a.category.localeCompare(b.category));
+
+    return filtered;
+  }, [data, showInProgressOnly]);
 
   const extendedData = useMemo(
     () => [...filteredData, ...filteredData, ...filteredData],

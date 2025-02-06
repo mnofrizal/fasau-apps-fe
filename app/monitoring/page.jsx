@@ -32,6 +32,7 @@ import { getReportsToday } from "@/lib/api/reports";
 
 export default function MonitoringPage() {
   const [autoScroll, setAutoScroll] = useState(true);
+  const [showInProgressOnly, setShowInProgressOnly] = useState(false);
   const {
     tasks,
     reports,
@@ -97,18 +98,33 @@ export default function MonitoringPage() {
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                       Monitoring Pekerjaan
                     </h2>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="auto-scroll"
-                        checked={autoScroll}
-                        onCheckedChange={setAutoScroll}
-                      />
-                      <label
-                        htmlFor="auto-scroll"
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        Auto Scroll
-                      </label>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="auto-scroll"
+                          checked={autoScroll}
+                          onCheckedChange={setAutoScroll}
+                        />
+                        <label
+                          htmlFor="auto-scroll"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Auto Scroll
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="in-progress"
+                          checked={showInProgressOnly}
+                          onCheckedChange={setShowInProgressOnly}
+                        />
+                        <label
+                          htmlFor="in-progress"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Show In Progress Only
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-4">
@@ -137,6 +153,7 @@ export default function MonitoringPage() {
                   data={tasks}
                   autoScroll={autoScroll}
                   onToggleScroll={setAutoScroll}
+                  showInProgressOnly={showInProgressOnly}
                 />
               </CardContent>
             </Card>
