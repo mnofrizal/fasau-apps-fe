@@ -15,12 +15,9 @@ const TimeDisplay = dynamic(
 );
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
-import {
-  recentTaskReports,
-  todayTasks,
-  monitoringTasks,
-  todayEvents,
-} from "../../contants/mockData";
+import useMonitoringStore from "@/store/monitoring-store";
+import { useSocket } from "@/components/socket-provider";
+import { useToast } from "@/hooks/use-toast";
 import {
   Carousel,
   CarouselContent,
@@ -35,68 +32,55 @@ import { getReportsToday } from "@/lib/api/reports";
 
 export default function MonitoringPage() {
   const [autoScroll, setAutoScroll] = useState(true);
-  const [acara, setAcara] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [reports, setReports] = useState([]);
+  const {
+    tasks,
+    reports,
+    acara,
+    isLoading,
+    error,
+    initializeData,
+    fetchTasks,
+    fetchReports,
+    fetchAcara,
+  } = useMonitoringStore();
+  const socket = useSocket();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await getReportsToday();
-        if (response.success) {
-          setReports(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching reports:", error);
-      }
+    // Initial data fetch
+    initializeData();
+
+    // Socket event listeners
+    socket.on("task_updated", () => {
+      fetchTasks();
+      toast({
+        title: "Tasks Updated",
+        description: "Task data has been refreshed with latest changes",
+      });
+    });
+
+    socket.on("report_created", () => {
+      fetchReports();
+      toast({
+        title: "New Report",
+        description: "A new report has been added to the system",
+      });
+    });
+
+    socket.on("acara_updated", () => {
+      fetchAcara();
+      toast({
+        title: "Events Updated",
+        description: "Event data has been refreshed with latest changes",
+      });
+    });
+
+    return () => {
+      socket.off("task_updated");
+      socket.off("report_created");
+      socket.off("acara_updated");
     };
-
-    fetchReports();
-  }, []);
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    try {
-      setIsLoading(true);
-      const response = await TasksAPI.getAllTasks();
-      if (response.success) {
-        setTasks(response.data);
-      } else {
-        setError(response.message || "Failed to fetch tasks");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching tasks");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAcara();
-  }, []);
-
-  const fetchAcara = async () => {
-    try {
-      setIsLoading(true);
-      const response = await AcaraAPI.getAllAcara();
-      if (response.success) {
-        setAcara(response.data);
-      } else {
-        setError(response.message || "Failed to fetch acara");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching acara");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [toast]);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />

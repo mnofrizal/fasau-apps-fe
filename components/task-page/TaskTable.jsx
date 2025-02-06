@@ -134,7 +134,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       id: "index",
       header: "No",
       size: 40,
-      cell: (info) => info.row.index + 1,
+      cell: (info) => (info.row.index % pageSize) + 1,
     },
     {
       accessorKey: "title",

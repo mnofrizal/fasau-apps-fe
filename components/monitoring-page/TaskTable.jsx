@@ -19,11 +19,15 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         accessorKey: "id",
         minSize: 80,
         maxSize: 80,
-        cell: (info) => (
-          <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
-            {info.row.index + 1}
-          </div>
-        ),
+        cell: (info) => {
+          const originalDataLength = data.length;
+          const adjustedIndex = (info.row.index % originalDataLength) + 1;
+          return (
+            <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
+              {adjustedIndex}
+            </div>
+          );
+        },
       },
       {
         header: "Nama Pekerjaan",
