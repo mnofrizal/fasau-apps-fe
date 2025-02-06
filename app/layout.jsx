@@ -31,8 +31,7 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem
+          defaultTheme="light"
           disableTransitionOnChange
         >
           <SocketProvider>{children}</SocketProvider>

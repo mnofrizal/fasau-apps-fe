@@ -40,7 +40,7 @@ export default function TodayScheduleDisplay() {
         <Card className="bg-white shadow-lg dark:bg-gray-800">
           <CardContent className="p-6">
             <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
-              PM Hari Ini
+              PM Hari Ini (Minggu ke-{weekInYear})
             </h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {weekSchedule[dayName]?.map((schedule, index) => {

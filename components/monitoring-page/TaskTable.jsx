@@ -8,9 +8,18 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
-  const extendedData = useMemo(() => [...data, ...data, ...data], [data]);
+  const filteredData = useMemo(() => {
+    return [...data];
+  }, [data]);
+
+  const extendedData = useMemo(
+    () => [...filteredData, ...filteredData, ...filteredData],
+    [filteredData]
+  );
 
   const columns = useMemo(
     () => [
@@ -30,12 +39,23 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         },
       },
       {
+        header: "Kategori",
+        accessorKey: "category",
+        minSize: 120,
+        maxSize: 120,
+        cell: (info) => (
+          <div className="truncate text-2xl text-gray-600 dark:text-gray-300">
+            {info.getValue()}
+          </div>
+        ),
+      },
+      {
         header: "Nama Pekerjaan",
         accessorKey: "title",
         minSize: 280,
         maxSize: 280,
         cell: (info) => (
-          <div className="whitespace-normal text-2xl font-medium text-gray-900 dark:text-white">
+          <div className="break-words text-2xl font-medium text-gray-900 dark:text-white">
             {info.getValue()}
           </div>
         ),
@@ -59,17 +79,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
           );
         },
       },
-      {
-        header: "Kategori",
-        accessorKey: "category",
-        minSize: 120,
-        maxSize: 120,
-        cell: (info) => (
-          <div className="truncate text-2xl text-gray-600 dark:text-gray-300">
-            {info.getValue()}
-          </div>
-        ),
-      },
+
       {
         header: "Status",
         accessorKey: "status",
@@ -101,7 +111,7 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
         minSize: 300,
         maxSize: 300,
         cell: (info) => (
-          <div className="truncate text-xl text-gray-600 dark:text-gray-300">
+          <div className="break-words text-xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -160,74 +170,76 @@ export default function TaskTable({ data, autoScroll = true, onToggleScroll }) {
   }, [controls, isHovered, autoScroll, data.length]);
 
   return (
-    <div className="border border-gray-200 dark:border-gray-600">
-      <ScrollArea
-        className="h-[610px]"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className="relative" ref={containerRef}>
-          <div className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
-            <table className="w-full table-fixed">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        style={{
-                          width: `${header.column.columnDef.minSize}px`,
-                        }}
-                        className="px-4 py-4 text-left text-base font-semibold text-gray-900 dark:text-white"
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-            </table>
-          </div>
-          <div className="relative">
-            <motion.div
-              animate={controls}
-              style={{
-                position: "relative",
-                width: "100%",
-              }}
-            >
+    <div>
+      <div className="border border-gray-200 dark:border-gray-600">
+        <ScrollArea
+          className="h-[610px]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className="relative" ref={containerRef}>
+            <div className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
               <table className="w-full table-fixed">
-                <tbody>
-                  {table.getRowModel().rows.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
                           style={{
-                            width: `${cell.column.columnDef.minSize}px`,
+                            width: `${header.column.columnDef.minSize}px`,
                           }}
-                          className="px-4 py-4"
+                          className="px-4 py-4 text-left text-base font-semibold text-gray-900 dark:text-white"
                         >
                           {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
+                            header.column.columnDef.header,
+                            header.getContext()
                           )}
-                        </td>
+                        </th>
                       ))}
                     </tr>
                   ))}
-                </tbody>
+                </thead>
               </table>
-            </motion.div>
+            </div>
+            <div className="relative">
+              <motion.div
+                animate={controls}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                }}
+              >
+                <table className="w-full table-fixed">
+                  <tbody>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr
+                        key={row.id}
+                        className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            key={cell.id}
+                            style={{
+                              width: `${cell.column.columnDef.minSize}px`,
+                            }}
+                            className="px-4 py-6"
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

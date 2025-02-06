@@ -164,7 +164,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
         return (
           <Badge
             variant="outline"
-            className={`bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-0.5 rounded-md transition-colors hover:bg-${color}-500/20`}
+            className={`bg-${color}-500/10 text-sm text-${color}-500 font-medium px-2.5 py-0.5 rounded-md transition-colors hover:bg-${color}-500/20`}
           >
             {kategori}
           </Badge>
@@ -351,7 +351,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       <div className="flex flex-col overflow-hidden rounded-lg border shadow-md">
         <div className="overflow-auto">
           <Table className="relative w-full">
-            <TableHeader className="sticky top-0 z-10 bg-gray-100">
+            <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -389,7 +389,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody className="dark:bg-gray-800">
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow

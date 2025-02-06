@@ -303,7 +303,7 @@ export function AcaraTable({ acara, onEditAcara, onDeleteAcara }) {
       <div className="flex flex-col overflow-hidden rounded-lg border shadow-md">
         <div className="overflow-auto">
           <Table className="relative w-full">
-            <TableHeader className="sticky top-0 z-10 bg-gray-100">
+            <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -341,7 +341,7 @@ export function AcaraTable({ acara, onEditAcara, onDeleteAcara }) {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody className="dark:bg-gray-800">
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow

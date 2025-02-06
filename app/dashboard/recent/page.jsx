@@ -67,6 +67,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 export default function RecentTasksPage() {
   const [sorting, setSorting] = useState([]);
@@ -191,6 +192,20 @@ export default function RecentTasksPage() {
       accessorKey: "category",
       header: "Kategori",
       size: 100,
+      cell: ({ row }) => {
+        return (
+          <Badge
+            variant="outline"
+            className={` p-2 px-6 ${
+              row.original.category === "CM"
+                ? "border-green-500 bg-green-50 text-green-700"
+                : "border-blue-500 bg-blue-50 text-blue-700"
+            }`}
+          >
+            {row.original.category}
+          </Badge>
+        );
+      },
     },
     {
       id: "actions",
@@ -327,13 +342,13 @@ export default function RecentTasksPage() {
       <Card>
         <div className="overflow-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="px-4 py-4 font-semibold"
+                      className="px-4 py-4 font-semibold uppercase text-gray-700 dark:text-gray-300"
                       style={{ width: header.getSize() }}
                     >
                       {header.isPlaceholder ? null : (
