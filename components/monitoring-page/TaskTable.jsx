@@ -44,8 +44,11 @@ export default function TaskTable({
         minSize: 80,
         maxSize: 80,
         cell: (info) => {
-          const originalDataLength = data.length;
-          const adjustedIndex = (info.row.index % originalDataLength) + 1;
+          const dataLength = filteredData.length;
+          const rowIndex = info.row.index;
+          const adjustedIndex = autoScroll
+            ? (rowIndex % dataLength) + 1
+            : rowIndex + 1;
           return (
             <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
               {adjustedIndex}
@@ -132,12 +135,12 @@ export default function TaskTable({
         ),
       },
     ],
-    []
+    [autoScroll, filteredData]
   );
 
   const tableData = useMemo(() => {
-    return autoScroll ? extendedData : data;
-  }, [autoScroll, data, extendedData]);
+    return autoScroll ? extendedData : filteredData;
+  }, [autoScroll, filteredData, extendedData]);
 
   const table = useReactTable({
     data: tableData,
@@ -167,7 +170,7 @@ export default function TaskTable({
         return;
       }
 
-      const scrollDistance = data.length * 57;
+      const scrollDistance = filteredData.length * 57;
 
       await controls.start({
         y: [0, -scrollDistance],
@@ -182,7 +185,7 @@ export default function TaskTable({
     };
 
     startAnimation();
-  }, [controls, isHovered, autoScroll, data.length]);
+  }, [controls, isHovered, autoScroll, filteredData.length]);
 
   return (
     <div>
@@ -195,7 +198,7 @@ export default function TaskTable({
           <div className="relative" ref={containerRef}>
             <div className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
               <table className="w-full table-fixed">
-                <thead>
+                <thead className="">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <tr key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
@@ -230,7 +233,16 @@ export default function TaskTable({
                     {table.getRowModel().rows.map((row) => (
                       <tr
                         key={row.id}
-                        className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                        className={`border-b border-gray-200 dark:border-gray-600 
+                          ${
+                            row.original.category === "MEMO"
+                              ? "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/30"
+                              : row.original.category === "TASK"
+                              ? "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/30"
+                              : row.original.category === "LAPORAN"
+                              ? "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
