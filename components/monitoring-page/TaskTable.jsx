@@ -49,9 +49,20 @@ export default function TaskTable({
           const adjustedIndex = autoScroll
             ? (rowIndex % dataLength) + 1
             : rowIndex + 1;
+          const createdAt = new Date(info.row.original.createdAt);
+          const now = new Date();
+          const isNew = now - createdAt < 3 * 60 * 60 * 1000;
+
           return (
-            <div className="text-center text-xl font-medium text-gray-600 dark:text-gray-300">
-              {adjustedIndex}
+            <div className="relative text-center">
+              <div className="text-xl font-medium text-gray-600 dark:text-gray-300">
+                {adjustedIndex}
+              </div>
+              {isNew && (
+                <div className="absolute -right-1 -top-3 rounded bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
+                  NEW
+                </div>
+              )}
             </div>
           );
         },
@@ -233,16 +244,25 @@ export default function TaskTable({
                     {table.getRowModel().rows.map((row) => (
                       <tr
                         key={row.id}
-                        className={`border-b border-gray-200 dark:border-gray-600 
-                          ${
-                            row.original.category === "MEMO"
-                              ? "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/30"
-                              : row.original.category === "TASK"
-                              ? "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/30"
-                              : row.original.category === "LAPORAN"
-                              ? "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30"
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                          }`}
+                        className={`border-b dark:border-gray-600
+                          ${(() => {
+                            const createdAt = new Date(row.original.createdAt);
+                            const now = new Date();
+                            const isNew = now - createdAt < 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
+                            const categoryClasses =
+                              row.original.category === "MEMO"
+                                ? "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/30"
+                                : row.original.category === "TASK"
+                                ? "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/30"
+                                : row.original.category === "LAPORAN"
+                                ? "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-700";
+
+                            return `${categoryClasses} ${
+                              isNew ? "bg-gradient-to-r from-blue-500/50 " : ""
+                            }`;
+                          })()}`}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <td
