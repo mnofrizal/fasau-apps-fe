@@ -174,18 +174,43 @@ export default function RecentTasksPage() {
       accessorKey: "description",
       header: "Uraian",
       size: 200,
+      cell: ({ row }) => {
+        return (
+          <div className="space-y-1">
+            <div className="text-base">{row.original.description}</div>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "pelapor",
       header: "Pelapor",
       size: 150,
+      cell: ({ row }) => {
+        return (
+          <div className="space-y-1">
+            <div className="font-medium">{row.original.pelapor}</div>
+            <div className="text-xs text-muted-foreground">
+              {row.original.phone}
+            </div>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "createdAt",
       header: "Waktu Lapor",
       size: 120,
       cell: ({ row }) => {
-        return format(new Date(row.original.createdAt), "dd MMM yyyy HH:mm");
+        const date = new Date(row.original.createdAt);
+        return (
+          <div className="space-y-0.5">
+            <div>{format(date, "dd MMM yyyy")}</div>
+            <div className="text-xs text-muted-foreground">
+              {format(date, "HH:mm")}
+            </div>
+          </div>
+        );
       },
     },
     {

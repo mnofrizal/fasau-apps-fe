@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { pmSchedule, pmAssets, pmTeams } from "@/contants/mockData";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export default function TodayScheduleDisplay() {
   const startDate = new Date("2025-01-01");
@@ -62,9 +63,28 @@ export default function TodayScheduleDisplay() {
                         {asset.description}
                       </p>
                     </div>
-                    <div className="mt-auto text-xl">
-                      <span className="font-bold">{team.name}:</span>{" "}
-                      {team.members.join(", ")}
+                    <div className="mt-auto">
+                      <div className="mb-2 text-xl">
+                        <span className="font-bold">{team.name}</span>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {team.members.map((member, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800">
+                              <AvatarImage />
+                              <AvatarFallback className="bg-gray-300">
+                                {member
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="text-lg text-gray-600 dark:text-gray-300">
+                              {member}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 );

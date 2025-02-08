@@ -13,8 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +53,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  CheckCircle,
 } from "lucide-react";
 import {
   Select,
@@ -80,11 +79,25 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [dateRange, setDateRange] = useState(undefined);
-  const [hideCompleted, setHideCompleted] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("hideCompleted");
+      return stored ? JSON.parse(stored) : false;
+    }
+    return false;
+  });
+  const [showTodayOnly, setShowTodayOnly] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("showTodayOnly");
+      return stored ? JSON.parse(stored) : false;
+    }
+    return false;
+  });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
+  const [completeTaskId, setCompleteTaskId] = useState(null);
   const { toast } = useToast();
 
   const filteredData = useMemo(() => {
@@ -92,6 +105,19 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       // Hide completed filter
       if (hideCompleted && task.status === "COMPLETED") {
         return false;
+      }
+
+      // Today only filter
+      if (showTodayOnly) {
+        const taskDate = new Date(task.createdAt);
+        const today = new Date();
+        if (
+          taskDate.getDate() !== today.getDate() ||
+          taskDate.getMonth() !== today.getMonth() ||
+          taskDate.getFullYear() !== today.getFullYear()
+        ) {
+          return false;
+        }
       }
 
       // Status filter
@@ -114,7 +140,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
 
       // Date range filter
       if (dateRange?.from && dateRange?.to) {
-        const taskDate = parse(task.startDate, "d MMM yyyy", new Date());
+        const taskDate = new Date(task.createdAt);
         if (
           !isWithinInterval(taskDate, {
             start: startOfDay(dateRange.from),
@@ -127,7 +153,14 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
 
       return true;
     });
-  }, [tasks, statusFilter, categoryFilter, dateRange, hideCompleted]);
+  }, [
+    tasks,
+    statusFilter,
+    categoryFilter,
+    dateRange,
+    hideCompleted,
+    showTodayOnly,
+  ]);
 
   const columns = [
     {
@@ -204,7 +237,20 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       size: 80,
       cell: ({ row }) => {
         return (
-          <div className="flex items-center justify-center">
+          <div className="flex items-end justify-end space-x-1">
+            {row.original.status == "INPROGRESS" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCompleteTaskId(row.original.id);
+                }}
+              >
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -279,13 +325,37 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
               className="pl-8"
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="hide-completed"
-              checked={hideCompleted}
-              onCheckedChange={setHideCompleted}
-            />
-            <Label htmlFor="hide-completed">Hide completed</Label>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const newValue = !hideCompleted;
+                setHideCompleted(newValue);
+                localStorage.setItem("hideCompleted", JSON.stringify(newValue));
+              }}
+              className={`rounded-full px-4 ${
+                hideCompleted
+                  ? "bg-primary/10 text-primary hover:bg-primary/20"
+                  : "hover:bg-background"
+              }`}
+            >
+              Hide completed
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const newValue = !showTodayOnly;
+                setShowTodayOnly(newValue);
+                localStorage.setItem("showTodayOnly", JSON.stringify(newValue));
+              }}
+              className={`rounded-full px-4 ${
+                showTodayOnly
+                  ? "bg-primary/10 text-primary hover:bg-primary/20"
+                  : "hover:bg-background"
+              }`}
+            >
+              Today only
+            </Button>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -315,7 +385,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className={`w-[300px] justify-start text-left font-normal ${
+                className={`w-[255px] justify-start text-left font-normal ${
                   !dateRange?.from && "text-muted-foreground"
                 }`}
               >
@@ -480,6 +550,56 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
             </Button>
           </div>
         </div>
+
+        <AlertDialog open={completeTaskId !== null}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Complete Task</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to mark this task as completed?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCompleteTaskId(null);
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-green-600 hover:bg-green-700"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const task = tasks.find((t) => t.id === completeTaskId);
+                    const updatedTask = {
+                      ...task,
+                      status: "COMPLETED",
+                    };
+                    await TasksAPI.updateTask(completeTaskId, updatedTask);
+                    toast({
+                      title: "Task marked as completed",
+                      variant: "success",
+                    });
+                    onEditTask?.(updatedTask);
+                  } catch (error) {
+                    toast({
+                      title: "Failed to update task",
+                      description: error.message,
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setCompleteTaskId(null);
+                  }
+                }}
+              >
+                Complete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <AlertDialog open={deleteTaskId !== null}>
           <AlertDialogContent>

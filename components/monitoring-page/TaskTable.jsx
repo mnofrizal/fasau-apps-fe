@@ -20,14 +20,11 @@ export default function TaskTable({
   const filteredData = useMemo(() => {
     let filtered = [...data];
 
-    // Filter for in-progress tasks if enabled
     if (showInProgressOnly) {
       filtered = filtered.filter((task) => task.status === "INPROGRESS");
     }
 
-    // Sort by category
     filtered.sort((a, b) => a.category.localeCompare(b.category));
-
     return filtered;
   }, [data, showInProgressOnly]);
 
@@ -55,11 +52,11 @@ export default function TaskTable({
 
           return (
             <div className="relative text-center">
-              <div className="text-xl font-medium text-gray-600 dark:text-gray-300">
+              <div className="text-xl font-medium text-gray-900 dark:text-gray-300">
                 {adjustedIndex}
               </div>
               {isNew && (
-                <div className="absolute -right-1 -top-3 rounded bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
+                <div className="absolute -right-1 -top-3 animate-pulse rounded bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
                   NEW
                 </div>
               )}
@@ -73,7 +70,7 @@ export default function TaskTable({
         minSize: 120,
         maxSize: 120,
         cell: (info) => (
-          <div className="truncate text-2xl text-gray-600 dark:text-gray-300">
+          <div className="truncate text-2xl text-gray-900 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -108,7 +105,6 @@ export default function TaskTable({
           );
         },
       },
-
       {
         header: "Status",
         accessorKey: "status",
@@ -162,40 +158,87 @@ export default function TaskTable({
   const [isHovered, setIsHovered] = useState(false);
   const controls = useAnimationControls();
   const containerRef = useRef(null);
+  const tableRef = useRef(null);
+  const animationRef = useRef({
+    lastTimestamp: 0,
+    pausedAt: 0,
+    pausedPosition: 0,
+  });
+
+  const ROW_HEIGHT = 57;
+  const HEADER_HEIGHT = 56;
+  const SCROLL_SPEED = 4;
+  const VIEWPORT_HEIGHT = 610;
 
   useEffect(() => {
-    const startAnimation = async () => {
+    let animationFrameId;
+    let startTime;
+
+    const singleSetHeight = filteredData.length * ROW_HEIGHT;
+    const visibleHeight = VIEWPORT_HEIGHT - HEADER_HEIGHT;
+    const resetAfterHeight = singleSetHeight + visibleHeight;
+
+    const animate = (timestamp) => {
+      const ref = animationRef.current;
+
+      if (!startTime) {
+        startTime = timestamp - ref.pausedAt;
+        ref.lastTimestamp = timestamp;
+      }
+
       if (!autoScroll) {
-        await controls.start({
-          y: 0,
-          transition: {
-            duration: 0.5,
-            ease: "easeInOut",
-          },
-        });
+        animationFrameId = requestAnimationFrame(animate);
         return;
       }
 
+      let currentPosition;
       if (isHovered) {
-        controls.stop();
-        return;
+        // When hovering, maintain the current position
+        if (!ref.pausedAt) {
+          ref.pausedAt = timestamp - startTime;
+          ref.pausedPosition = ((timestamp - startTime) * SCROLL_SPEED) / 1000;
+        }
+        currentPosition = ref.pausedPosition;
+      } else {
+        // When not hovering, continue from where we left off
+        if (ref.pausedAt) {
+          startTime = timestamp - ref.pausedAt;
+          ref.pausedAt = 0;
+        }
+        currentPosition = ((timestamp - startTime) * SCROLL_SPEED) / 1000;
       }
 
-      const scrollDistance = filteredData.length * 57;
+      // Reset when we've scrolled past the first set
+      if (currentPosition >= resetAfterHeight) {
+        startTime = timestamp;
+        currentPosition = 0;
+        ref.pausedAt = 0;
+        ref.pausedPosition = 0;
+      }
 
-      await controls.start({
-        y: [0, -scrollDistance],
-        transition: {
-          duration: 100,
-          ease: "linear",
-          repeat: Infinity,
-          repeatType: "loop",
-          repeatDelay: 0,
-        },
+      controls.set({
+        y: -currentPosition,
+        transition: { duration: 0 },
       });
+
+      ref.lastTimestamp = timestamp;
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    startAnimation();
+    if (autoScroll) {
+      animationFrameId = requestAnimationFrame(animate);
+    } else {
+      controls.start({
+        y: 0,
+        transition: { duration: 0.5, ease: "easeInOut" },
+      });
+    }
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [controls, isHovered, autoScroll, filteredData.length]);
 
   return (
@@ -233,6 +276,7 @@ export default function TaskTable({
             </div>
             <div className="relative">
               <motion.div
+                ref={tableRef}
                 animate={controls}
                 style={{
                   position: "relative",
@@ -248,7 +292,7 @@ export default function TaskTable({
                           ${(() => {
                             const createdAt = new Date(row.original.createdAt);
                             const now = new Date();
-                            const isNew = now - createdAt < 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+                            const isNew = now - createdAt < 3 * 60 * 60 * 1000;
 
                             const categoryClasses =
                               row.original.category === "MEMO"
@@ -259,9 +303,17 @@ export default function TaskTable({
                                 ? "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30"
                                 : "hover:bg-gray-100 dark:hover:bg-gray-700";
 
-                            return `${categoryClasses} ${
-                              isNew ? "bg-gradient-to-r from-blue-500/50 " : ""
-                            }`;
+                            const gradientClass = isNew
+                              ? row.original.category === "MEMO"
+                                ? "bg-gradient-to-r from-yellow-500/40"
+                                : row.original.category === "TASK"
+                                ? "bg-gradient-to-r from-blue-500/50"
+                                : row.original.category === "LAPORAN"
+                                ? "bg-gradient-to-r from-green-500/40"
+                                : ""
+                              : "";
+
+                            return `${categoryClasses} ${gradientClass}`;
                           })()}`}
                       >
                         {row.getVisibleCells().map((cell) => (
