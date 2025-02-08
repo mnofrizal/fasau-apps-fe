@@ -1,40 +1,64 @@
+"use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { TasksAPI } from "@/lib/api/tasks";
+import { WA_URL } from "@/lib/config";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+
 import { Switch } from "../ui/switch";
 
 export function AddTaskDialog({ onAddTask }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [waStatus, setWaStatus] = useState("offline");
   const { toast } = useToast();
+
+  useEffect(() => {
+    const checkWaStatus = async () => {
+      try {
+        const response = await fetch(`${WA_URL}/status`);
+        const data = await response.json();
+        setWaStatus(
+          data.success && data.status === "ready" ? "online" : "offline"
+        );
+      } catch (error) {
+        console.error("Failed to check WA status:", error);
+        setWaStatus("offline");
+      }
+    };
+
+    const interval = setInterval(checkWaStatus, 30000); // Check every 30 seconds
+    checkWaStatus(); // Initial check
+
+    return () => clearInterval(interval);
+  }, []);
   const [formData, setFormData] = useState({
     title: "",
-    category: localStorage.getItem("taskCategoryPreference") || "MEMO",
-    status: localStorage.getItem("taskStatusPreference") || "INPROGRESS",
+    category: "MEMO",
+    status: "INPROGRESS",
     keterangan: "",
-    sendWa: localStorage.getItem("taskSendWaPreference") === "true" || false,
+    sendWa: false,
   });
+
+  // Load preferences from localStorage after mount
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      category: localStorage.getItem("taskCategoryPreference") || prev.category,
+      status: localStorage.getItem("taskStatusPreference") || prev.status,
+      sendWa:
+        localStorage.getItem("taskSendWaPreference") === "true" || prev.sendWa,
+    }));
+  }, []);
   const [showDescription, setShowDescription] = useState(false);
 
   const toggleDescription = (show) => {
@@ -117,11 +141,23 @@ export function AddTaskDialog({ onAddTask }) {
       </DialogTrigger>
 
       {/* <DialogOverlay className="backdrop-blur-[3px]" /> */}
-      <DialogContent className="p-8 sm:max-w-[650px]">
+      <DialogContent className="p-8 dark:bg-gray-800 sm:max-w-[650px]">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="text-2xl font-semibold tracking-tight">
-            Add New Task
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-semibold tracking-tight dark:text-gray-300">
+              Add New Task
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                WA Server:
+              </span>
+              <div
+                className={`h-2.5 w-2.5 rounded-full ${
+                  waStatus === "online" ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+            </div>
+          </div>
         </DialogHeader>
         <div className="space-y-5">
           <div className="space-y-3">
@@ -129,7 +165,7 @@ export function AddTaskDialog({ onAddTask }) {
               <input
                 id="title"
                 placeholder="What needs to be done?"
-                className="h-16 w-full rounded-md border border-input bg-transparent px-4 py-2 text-2xl font-medium text-gray-800 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-16 w-full rounded-md border border-input bg-transparent px-4 py-2 text-2xl font-medium text-gray-800 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-700 dark:text-gray-200"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
@@ -141,7 +177,7 @@ export function AddTaskDialog({ onAddTask }) {
           <div className="space-y-3">
             <Label
               htmlFor="category"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground dark:text-gray-400"
             >
               Category
             </Label>
@@ -149,8 +185,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
                   formData.category === "MEMO"
-                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600 dark:bg-blue-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleCategoryChange("MEMO")}
               >
@@ -159,8 +195,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
                   formData.category === "TASK"
-                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600 dark:bg-green-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleCategoryChange("TASK")}
               >
@@ -169,8 +205,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-purple-50 hover:text-purple-600 ${
                   formData.category === "LAPORAN"
-                    ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600 dark:bg-purple-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleCategoryChange("LAPORAN")}
               >
@@ -182,7 +218,7 @@ export function AddTaskDialog({ onAddTask }) {
           <div className="space-y-3">
             <Label
               htmlFor="status"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground dark:text-gray-400"
             >
               Status
             </Label>
@@ -190,8 +226,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
                   formData.status === "INPROGRESS"
-                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600 dark:bg-blue-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleStatusChange("INPROGRESS")}
               >
@@ -200,8 +236,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
                   formData.status === "COMPLETED"
-                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600 dark:bg-green-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleStatusChange("COMPLETED")}
               >
@@ -210,8 +246,8 @@ export function AddTaskDialog({ onAddTask }) {
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${
                   formData.status === "CANCEL"
-                    ? "bg-red-50 text-red-600 ring-1 ring-red-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-red-50 text-red-600 ring-1 ring-red-600 dark:bg-red-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
                 onClick={() => handleStatusChange("CANCEL")}
               >
@@ -222,10 +258,12 @@ export function AddTaskDialog({ onAddTask }) {
 
           <div
             onClick={() => toggleDescription(!showDescription)}
-            className="flex w-full cursor-pointer items-center justify-center rounded-md border py-3 text-sm text-muted-foreground transition-colors hover:bg-accent/50"
+            className="flex w-full cursor-pointer items-center justify-center rounded-md border py-3 text-sm text-muted-foreground transition-colors hover:bg-accent/50 dark:bg-gray-700 dark:text-gray-200"
           >
             {showDescription ? (
-              <span className="text-red-700">- Remove Description</span>
+              <span className="text-red-700 dark:text-red-500">
+                - Remove Description
+              </span>
             ) : (
               "+ Add Description"
             )}
@@ -236,7 +274,7 @@ export function AddTaskDialog({ onAddTask }) {
               <Textarea
                 id="description"
                 placeholder="Add any additional notes..."
-                className="mt-2 h-24 resize-none"
+                className="mt-2 h-24 resize-none dark:bg-gray-700 dark:text-gray-200"
                 value={formData.keterangan}
                 onChange={(e) =>
                   setFormData({ ...formData, keterangan: e.target.value })
@@ -252,19 +290,22 @@ export function AddTaskDialog({ onAddTask }) {
                 checked={formData.sendWa}
                 onCheckedChange={handleSendWaChange}
               />
-              <Label htmlFor="sendWa" className="text-sm">
+              <Label htmlFor="sendWa" className="text-sm dark:text-gray-400">
                 Info ke WA Grup
               </Label>
             </div>
             <div className="flex gap-3">
               <DialogTrigger asChild>
-                <Button variant="outline" className="font-medium">
+                <Button
+                  variant="outline"
+                  className="font-medium dark:bg-gray-700 dark:text-gray-200"
+                >
                   Cancel
                 </Button>
               </DialogTrigger>
               <Button
                 onClick={handleSubmit}
-                className="bg-primary font-medium hover:bg-primary/90"
+                className="bg-primary font-medium hover:bg-primary/90 dark:bg-blue-500 dark:hover:bg-blue-600"
                 disabled={
                   isLoading ||
                   !formData.title ||

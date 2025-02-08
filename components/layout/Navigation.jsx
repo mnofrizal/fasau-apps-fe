@@ -3,6 +3,14 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { Pacifico } from "next/font/google";
 import { usePathname } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const pacifico = Pacifico({
   subsets: ["latin"],
@@ -13,7 +21,7 @@ const pacifico = Pacifico({
 export default function Navigation() {
   const pathname = usePathname();
   return (
-    <nav className="border-b border-border bg-background">
+    <nav className="shadow-xs border-b border-border bg-background">
       <div className="mx-auto px-6 py-2 lg:px-8">
         <div className="flex h-12 items-center justify-between">
           {/* Left side - Brand */}
@@ -57,11 +65,24 @@ export default function Navigation() {
           {/* Right side - Profile section */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <div className="flex-shrink-0">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600">
-                <span className="text-base font-semibold text-white">JD</span>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex-shrink-0 cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600">
+                    <span className="text-base font-semibold text-white">
+                      JD
+                    </span>
+                  </div>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <a href="/dashboard/settings">Settings</a>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

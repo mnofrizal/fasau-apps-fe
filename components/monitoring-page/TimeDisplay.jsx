@@ -27,7 +27,7 @@ export default function TimeDisplay() {
   });
 
   return (
-    <Card className="border-none bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg dark:from-orange-600 dark:to-orange-700">
+    <Card className="border-none bg-gradient-to-br from-orange-500 to-orange-600 shadow-xl dark:from-orange-600 dark:to-orange-700">
       <CardContent className="flex items-center justify-center p-6">
         <div className="flex items-center space-x-3">
           <div className="text-6xl font-bold text-white">{day}</div>

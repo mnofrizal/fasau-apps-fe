@@ -472,6 +472,17 @@ export const getTeamAssignment = (date) => {
   }));
 };
 
+/*
+Usage Example:
+To find out which team is assigned to which asset on a specific date, 
+you can call the getTeamAssignment function with the desired date as follows:
+
+const assignments = getTeamAssignment("2025-02-10");
+console.log(assignments);
+
+This will return an array of objects, each containing the asset and the team assigned to it on the given date.
+*/
+
 export const acaraData = [
   {
     id: 1,

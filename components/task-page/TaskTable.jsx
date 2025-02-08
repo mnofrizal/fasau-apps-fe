@@ -86,6 +86,13 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     }
     return false;
   });
+  const [showMemoOnly, setShowMemoOnly] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("showMemoOnly");
+      return stored ? JSON.parse(stored) : false;
+    }
+    return false;
+  });
   const [showTodayOnly, setShowTodayOnly] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("showTodayOnly");
@@ -104,6 +111,9 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     return tasks.filter((task) => {
       // Hide completed filter
       if (hideCompleted && task.status === "COMPLETED") {
+        return false;
+      }
+      if (showMemoOnly && task.category !== "MEMO") {
         return false;
       }
 
@@ -133,7 +143,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       if (
         categoryFilter &&
         categoryFilter !== "all" &&
-        task.kategori !== categoryFilter
+        task.category !== categoryFilter
       ) {
         return false;
       }
@@ -159,6 +169,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     categoryFilter,
     dateRange,
     hideCompleted,
+    showMemoOnly,
     showTodayOnly,
   ]);
 
@@ -168,19 +179,6 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       header: "No",
       size: 40,
       cell: (info) => (info.row.index % pageSize) + 1,
-    },
-    {
-      accessorKey: "title",
-      header: "Uraian",
-      size: 300,
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Start",
-      size: 100,
-      cell: ({ row }) => {
-        return format(new Date(row.original.createdAt), "d MMM yyyy");
-      },
     },
     {
       accessorKey: "category",
@@ -197,13 +195,32 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
         return (
           <Badge
             variant="outline"
-            className={`bg-${color}-500/10 text-sm text-${color}-500 font-medium px-2.5 py-0.5 rounded-md transition-colors hover:bg-${color}-500/20`}
+            className={`bg-${color}-500/10 text-xs text-${color}-500 font-medium px-2.5 py-1 rounded-md transition-colors hover:bg-${color}-500/20 dark:bg-${color}-700 dark:text-white`}
           >
             {kategori}
           </Badge>
         );
       },
     },
+    {
+      accessorKey: "title",
+      header: "Uraian",
+      size: 300,
+      cell: ({ row }) => (
+        <div className="text-base text-gray-900 dark:text-gray-200">
+          {row.original.title}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Start",
+      size: 100,
+      cell: ({ row }) => {
+        return format(new Date(row.original.createdAt), "d MMM yyyy");
+      },
+    },
+
     {
       accessorKey: "status",
       header: () => <div className="w-full text-center">Status</div>,
@@ -217,12 +234,18 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
         };
         const color = colorMap[status] || "gray";
         return (
-          <div
+          <Badge
             variant="outline"
-            className={`text-center bg-${color}-500/10 text-${color}-500 font-medium px-2.5 py-1.5 rounded-md transition-colors hover:bg-${color}-500/20`}
+            className={`text-center text-xs w-full justify-center  ${
+              color === "red" ? "bg-red-500/10" : `bg-${color}-500/10`
+            } text-${color}-500 border-${color}-100  font-medium px-2.5 py-1.5 rounded-md transition-colors ${
+              color === "red"
+                ? "hover:bg-red-500/20 border-red-100"
+                : `hover:bg-${color}-500/20`
+            } dark:bg-${color}-700 dark:text-white`}
           >
             {status}
-          </div>
+          </Badge>
         );
       },
     },
@@ -314,9 +337,9 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex w-full flex-col rounded-lg border shadow-md">
-        <div className="sticky top-0 z-10 w-full bg-gray-100 shadow-sm dark:bg-gray-700">
-          <div className="flex w-full flex-wrap items-center justify-between gap-4 border-b p-4">
+      <div className="flex w-full flex-col">
+        <div className="shadow-mds sticky top-0 z-10 w-full">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 bg-white p-4 px-0 dark:bg-gray-900">
             <div className="flex items-center gap-4">
               <div className="relative w-72">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -338,13 +361,34 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                       JSON.stringify(newValue)
                     );
                   }}
-                  className={`rounded-full px-4 ${
+                  className={`rounded-full px-4 shadow-none ${
                     hideCompleted
-                      ? "bg-primary/10 text-primary hover:bg-primary/20"
-                      : "hover:bg-background"
+                      ? "bg-sky-50 text-teal-600 border-teal-600 hover:bg-teal-100 hover:text-teal-600 dark:bg-teal-600 dark:text-white dark:hover:bg-teal-700 dark:hover:text-white"
+                      : "hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-600 dark:hover:text-white"
                   }`}
                 >
                   Hide completed
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const newValue = !showMemoOnly;
+                    setShowMemoOnly(newValue);
+                    localStorage.setItem(
+                      "showMemoOnly",
+                      JSON.stringify(newValue)
+                    );
+                  }}
+                  className={`rounded-full px-4 shadow-none ${
+                    showMemoOnly
+                      ? "bg-blue-50 text-blue-600 border-blue-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 dark:hover:text-white"
+                      : "hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-600 dark:hover:text-white"
+                  }`}
+                >
+                  Memo{" "}
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                    {tasks.filter((task) => task.category === "MEMO").length}
+                  </span>
                 </Button>
                 <Button
                   variant="outline"
@@ -356,18 +400,34 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                       JSON.stringify(newValue)
                     );
                   }}
-                  className={`rounded-full px-4 ${
+                  className={`rounded-full px-4 shadow-none  ${
                     showTodayOnly
-                      ? "bg-primary/10 text-primary hover:bg-primary/20"
-                      : "hover:bg-background"
+                      ? "bg-indigo-50 text-indigo-600 border-indigo-600 hover:bg-indigo-100 hover:text-indigo-600 dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700 dark:hover:text-white"
+                      : "hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-600 dark:hover:text-white"
                   }`}
                 >
-                  Today only
+                  Today{" "}
+                  <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">
+                    {
+                      tasks.filter((task) => {
+                        const taskDate = new Date(task.createdAt);
+                        const today = new Date();
+                        return (
+                          taskDate.getDate() === today.getDate() &&
+                          taskDate.getMonth() === today.getMonth() &&
+                          taskDate.getFullYear() === today.getFullYear()
+                        );
+                      }).length
+                    }
+                  </span>
                 </Button>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select
+                value={statusFilter || "all"}
+                onValueChange={setStatusFilter}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by Status" />
                 </SelectTrigger>
@@ -378,15 +438,18 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                   <SelectItem value="COMPLETED">Completed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <Select
+                value={categoryFilter || "all"}
+                onValueChange={setCategoryFilter}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by Category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="memo">Memo</SelectItem>
-                  <SelectItem value="laporan">Laporan</SelectItem>
-                  <SelectItem value="task">Tugas</SelectItem>
+                  <SelectItem value="MEMO">Memo</SelectItem>
+                  <SelectItem value="LAPORAN">Laporan</SelectItem>
+                  <SelectItem value="TASK">Tugas</SelectItem>
                 </SelectContent>
               </Select>
               <Popover>
@@ -425,9 +488,9 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
               </Popover>
             </div>
           </div>
-          <div className="border-b border-t">
-            <Table className="w-full border-collapse">
-              <TableHeader>
+          <div className="rounded-t-lg border border-b-0 bg-gray-100 dark:bg-gray-700">
+            <Table className="w-full">
+              <TableHeader className="sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -468,7 +531,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
             </Table>
           </div>
         </div>
-        <div className="overflow-auto border-t">
+        <div className="overflow-auto rounded-b-lg border">
           <Table className="w-full border-collapse">
             <TableBody className="dark:bg-gray-800">
               {table.getRowModel().rows?.length ? (
@@ -486,6 +549,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                       <TableCell
                         key={cell.id}
                         className="px-4 py-3 font-normal"
+                        style={{ width: cell.column.getSize() }}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -529,7 +593,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[5, 10, 20, 30, 40, 50].map((size) => (
+                {[5, 8, 10, 20, 30, 40, 50].map((size) => (
                   <SelectItem key={size} value={size.toString()}>
                     {size}
                   </SelectItem>

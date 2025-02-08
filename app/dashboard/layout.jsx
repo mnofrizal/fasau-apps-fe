@@ -6,7 +6,7 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
       <Navigation />
-      <div className="container mx-auto">
+      <div className="container mx-auto flex">
         {/* <Sidebar /> */}
         {children}
       </div>

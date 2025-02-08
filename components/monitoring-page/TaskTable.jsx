@@ -48,7 +48,8 @@ export default function TaskTable({
             : rowIndex + 1;
           const createdAt = new Date(info.row.original.createdAt);
           const now = new Date();
-          const isNew = now - createdAt < 3 * 60 * 60 * 1000;
+          // Check if the task is created within the last 2 hours
+          const isNew = now - createdAt < 2 * 60 * 60 * 1000;
 
           return (
             <div className="relative text-center">
@@ -56,7 +57,7 @@ export default function TaskTable({
                 {adjustedIndex}
               </div>
               {isNew && (
-                <div className="absolute -right-1 -top-3 animate-pulse rounded bg-green-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
+                <div className="absolute -right-1 -top-3 animate-pulse rounded bg-pink-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
                   NEW
                 </div>
               )}

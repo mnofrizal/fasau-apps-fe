@@ -12,6 +12,7 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
+    console.log({ tasks });
   }, []);
 
   const fetchTasks = async () => {
@@ -31,21 +32,16 @@ export default function TasksPage() {
     }
   };
 
-  const handleAddTask = (newTask) => {
-    setTasks((prevTasks) => [
-      ...prevTasks,
-      { ...newTask, id: prevTasks.length + 1 },
-    ]);
+  const handleAddTask = () => {
+    fetchTasks(); // Refresh data from server after adding task
   };
 
-  const handleEditTask = (updatedTask) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
+  const handleEditTask = () => {
+    fetchTasks(); // Refresh data from server after editing task
   };
 
   return (
-    <main className="flex flex-col space-y-6 py-8">
+    <main className="flex w-full flex-col space-y-6 px-8 py-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-primary">
