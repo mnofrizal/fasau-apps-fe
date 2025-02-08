@@ -129,7 +129,7 @@ export function AddTaskDialog({ onAddTask }) {
               <input
                 id="title"
                 placeholder="What needs to be done?"
-                className="h-16 w-full rounded-md border border-input bg-transparent px-4 py-2 text-2xl font-medium placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="h-16 w-full rounded-md border border-input bg-transparent px-4 py-2 text-2xl font-medium text-gray-800 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })

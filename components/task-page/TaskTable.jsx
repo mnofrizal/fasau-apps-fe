@@ -313,159 +313,170 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
   });
 
   return (
-    <div className="flex flex-col space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative w-72">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tasks..."
-              value={globalFilter ?? ""}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="pl-8"
-            />
+    <div className="flex w-full flex-col">
+      <div className="flex w-full flex-col rounded-lg border shadow-md">
+        <div className="sticky top-0 z-10 w-full bg-gray-100 shadow-sm dark:bg-gray-700">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 border-b p-4">
+            <div className="flex items-center gap-4">
+              <div className="relative w-72">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={globalFilter ?? ""}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const newValue = !hideCompleted;
+                    setHideCompleted(newValue);
+                    localStorage.setItem(
+                      "hideCompleted",
+                      JSON.stringify(newValue)
+                    );
+                  }}
+                  className={`rounded-full px-4 ${
+                    hideCompleted
+                      ? "bg-primary/10 text-primary hover:bg-primary/20"
+                      : "hover:bg-background"
+                  }`}
+                >
+                  Hide completed
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const newValue = !showTodayOnly;
+                    setShowTodayOnly(newValue);
+                    localStorage.setItem(
+                      "showTodayOnly",
+                      JSON.stringify(newValue)
+                    );
+                  }}
+                  className={`rounded-full px-4 ${
+                    showTodayOnly
+                      ? "bg-primary/10 text-primary hover:bg-primary/20"
+                      : "hover:bg-background"
+                  }`}
+                >
+                  Today only
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="CANCEL">Cancel</SelectItem>
+                  <SelectItem value="INPROGRESS">In Progress</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="memo">Memo</SelectItem>
+                  <SelectItem value="laporan">Laporan</SelectItem>
+                  <SelectItem value="task">Tugas</SelectItem>
+                </SelectContent>
+              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-[255px] justify-start text-left font-normal ${
+                      !dateRange?.from && "text-muted-foreground"
+                    }`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "LLL dd, y")} -{" "}
+                          {format(dateRange.to, "LLL dd, y")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "LLL dd, y")
+                      )
+                    ) : (
+                      <span>Pick a date range</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                const newValue = !hideCompleted;
-                setHideCompleted(newValue);
-                localStorage.setItem("hideCompleted", JSON.stringify(newValue));
-              }}
-              className={`rounded-full px-4 ${
-                hideCompleted
-                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "hover:bg-background"
-              }`}
-            >
-              Hide completed
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const newValue = !showTodayOnly;
-                setShowTodayOnly(newValue);
-                localStorage.setItem("showTodayOnly", JSON.stringify(newValue));
-              }}
-              className={`rounded-full px-4 ${
-                showTodayOnly
-                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "hover:bg-background"
-              }`}
-            >
-              Today only
-            </Button>
+          <div className="border-b border-t">
+            <Table className="w-full border-collapse">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="px-4 py-4 font-semibold uppercase text-gray-700 dark:text-gray-300"
+                        style={{ width: header.getSize() }}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              header.column.getCanSort()
+                                ? "cursor-pointer select-none"
+                                : ""
+                            }`}
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            {header.column.getCanSort() && (
+                              <div className="w-4">
+                                {header.column.getIsSorted() === "asc" ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : header.column.getIsSorted() === "desc" ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : null}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+            </Table>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="CANCEL">Cancel</SelectItem>
-              <SelectItem value="INPROGRESS">In Progress</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="memo">Memo</SelectItem>
-              <SelectItem value="laporan">Laporan</SelectItem>
-              <SelectItem value="task">Tugas</SelectItem>
-            </SelectContent>
-          </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={`w-[255px] justify-start text-left font-normal ${
-                  !dateRange?.from && "text-muted-foreground"
-                }`}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>Pick a date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <div className="flex flex-col overflow-hidden rounded-lg border shadow-md">
-        <div className="overflow-auto">
-          <Table className="relative w-full">
-            <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="px-4 py-4 font-semibold uppercase text-gray-700 dark:text-gray-300"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder ? null : (
-                        <div
-                          className={`flex items-center space-x-2 ${
-                            header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
-                          }`}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {header.column.getCanSort() && (
-                            <div className="w-4">
-                              {header.column.getIsSorted() === "asc" ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : header.column.getIsSorted() === "desc" ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : null}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
+        <div className="overflow-auto border-t">
+          <Table className="w-full border-collapse">
             <TableBody className="dark:bg-gray-800">
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="cursor-pointer hover:bg-gray-50/50"
+                    className="h-16 cursor-pointer hover:bg-gray-50/50"
                     onClick={() => {
                       setSelectedTask(row.original);
                       setEditDialogOpen(true);

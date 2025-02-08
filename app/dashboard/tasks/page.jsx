@@ -45,7 +45,7 @@ export default function TasksPage() {
   };
 
   return (
-    <main className="flex-1 space-y-6 py-8">
+    <main className="flex flex-col space-y-6 py-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-primary">

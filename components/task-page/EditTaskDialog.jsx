@@ -10,13 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { TasksAPI } from "@/lib/api/tasks";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "../ui/switch";
@@ -81,12 +74,12 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Task</DialogTitle>
+      <DialogContent className="p-6 px-7 sm:max-w-[500px]">
+        <DialogHeader className="">
+          <DialogTitle className="text-xl">Edit Task</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
+        <div className="grid gap-6 py-4">
+          <div className="grid gap-3">
             <Label htmlFor="title">Task Title</Label>
             <Input
               id="title"
@@ -97,64 +90,83 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
               }
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) =>
-                setFormData({ ...formData, category: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MEMO">Memo</SelectItem>
-                <SelectItem value="TASK">Task</SelectItem>
-                <SelectItem value="LAPORAN">Laporan</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid gap-3">
+            <Label>Category</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
+                  formData.category === "MEMO"
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
+                    : "bg-slate-50 text-slate-600"
+                }`}
+                onClick={() => setFormData({ ...formData, category: "MEMO" })}
+              >
+                Memo
+              </button>
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
+                  formData.category === "TASK"
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
+                    : "bg-slate-50 text-slate-600"
+                }`}
+                onClick={() => setFormData({ ...formData, category: "TASK" })}
+              >
+                Task
+              </button>
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-purple-50 hover:text-purple-600 ${
+                  formData.category === "LAPORAN"
+                    ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600"
+                    : "bg-slate-50 text-slate-600"
+                }`}
+                onClick={() =>
+                  setFormData({ ...formData, category: "LAPORAN" })
+                }
+              >
+                Laporan
+              </button>
+            </div>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             <Label>Status</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Card
-                className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-blue-500/20 hover:text-blue-500 ${
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
                   formData.status === "INPROGRESS"
-                    ? "bg-blue-500/10 text-blue-500 ring-1 ring-blue-500"
-                    : ""
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
+                    : "bg-slate-50 text-slate-600"
                 }`}
                 onClick={() =>
                   setFormData({ ...formData, status: "INPROGRESS" })
                 }
               >
                 In Progress
-              </Card>
-              <Card
-                className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-green-500/20 hover:text-green-500 ${
+              </button>
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
                   formData.status === "COMPLETED"
-                    ? "bg-green-500/10 text-green-500 ring-1 ring-green-500"
-                    : ""
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
+                    : "bg-slate-50 text-slate-600"
                 }`}
                 onClick={() =>
                   setFormData({ ...formData, status: "COMPLETED" })
                 }
               >
                 Completed
-              </Card>
-              <Card
-                className={`rounded-md cursor-pointer p-3 text-center shadow-none border-gray-200 transition-colors hover:bg-orange-500/20 hover:text-red-500 ${
+              </button>
+              <button
+                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${
                   formData.status === "CANCEL"
-                    ? "bg-orange-500/10 text-red-500 ring-1 ring-red-500"
-                    : ""
+                    ? "bg-red-50 text-red-600 ring-1 ring-red-600"
+                    : "bg-slate-50 text-slate-600"
                 }`}
                 onClick={() => setFormData({ ...formData, status: "CANCEL" })}
               >
                 Cancel
-              </Card>
+              </button>
             </div>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -166,8 +178,8 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
               }
             />
           </div>
-          <div className="flex justify-between gap-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex justify-end gap-4">
+            {/* <div className="flex items-center space-x-2">
               <Switch
                 id="sendWa"
                 checked={formData.sendWa}
@@ -176,14 +188,18 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
                 }
               />
               <Label htmlFor="sendWa">Info ke WA Grup</Label>
-            </div>
+            </div> */}
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="px-6"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary px-6 hover:bg-primary/90"
                 disabled={
                   isLoading ||
                   !formData.title ||
