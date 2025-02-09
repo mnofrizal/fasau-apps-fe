@@ -318,7 +318,7 @@ export default function MonitoringPage() {
                     <p className="text-xl font-medium text-gray-600 dark:text-gray-400">
                       Total:{" "}
                       <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                        35
+                        82
                       </span>
                     </p>
                   </div>
@@ -340,7 +340,7 @@ export default function MonitoringPage() {
                       {[
                         {
                           company: "PT TAMAN INA JAYA",
-                          count: 15,
+                          count: 17,
                           color: "bg-red-50 dark:bg-red-900/20",
                           textColor: "text-red-600 dark:text-red-400",
                           borderColor: "border-red-200 dark:border-red-800",
@@ -348,7 +348,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT MUTIARA KAHAL",
-                          count: 10,
+                          count: 20,
                           color: "bg-green-50 dark:bg-green-900/20",
                           textColor: "text-green-600 dark:text-green-400",
                           borderColor: "border-green-200 dark:border-green-800",
@@ -356,7 +356,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT JSI",
-                          count: 5,
+                          count: 1,
                           color: "bg-yellow-50 dark:bg-yellow-900/20",
                           textColor: "text-yellow-600 dark:text-yellow-400",
                           borderColor:
@@ -365,7 +365,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT TRIDAYA PUTRA",
-                          count: 3,
+                          count: 22,
                           color: "bg-purple-50 dark:bg-purple-900/20",
                           textColor: "text-purple-600 dark:text-purple-400",
                           borderColor:
@@ -374,7 +374,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "KOPERASI RUSAMAS",
-                          count: 2,
+                          count: 9,
                           color: "bg-pink-50 dark:bg-pink-900/20",
                           textColor: "text-pink-600 dark:text-pink-400",
                           borderColor: "border-pink-200 dark:border-pink-800",
@@ -382,7 +382,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT TRISTAN",
-                          count: 1,
+                          count: 5,
                           color: "bg-indigo-50 dark:bg-indigo-900/20",
                           textColor: "text-indigo-600 dark:text-indigo-400",
                           borderColor:
@@ -391,7 +391,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT TAMPOMAS",
-                          count: 1,
+                          count: 5,
                           color: "bg-teal-50 dark:bg-teal-900/20",
                           textColor: "text-teal-600 dark:text-teal-400",
                           borderColor: "border-teal-200 dark:border-teal-800",
@@ -399,7 +399,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT MITRA MULTI",
-                          count: 1,
+                          count: 2,
                           color: "bg-orange-50 dark:bg-orange-900/20",
                           textColor: "text-orange-600 dark:text-orange-400",
                           borderColor:
