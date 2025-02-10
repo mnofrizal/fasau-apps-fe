@@ -17,6 +17,15 @@ import { Switch } from "../ui/switch";
 export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleCategoryChange = (category) => {
+    setFormData({ ...formData, category });
+  };
+
+  const handleStatusChange = (status) => {
+    setFormData({ ...formData, status });
+  };
+
   const [formData, setFormData] = useState({
     title: "",
     category: "",
@@ -92,75 +101,99 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
           </div>
           <div className="grid gap-3">
             <Label>Category</Label>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-2">
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
                   formData.category === "MEMO"
-                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600 dark:bg-blue-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() => setFormData({ ...formData, category: "MEMO" })}
+                onClick={() => handleCategoryChange("MEMO")}
               >
                 Memo
               </button>
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
                   formData.category === "TASK"
-                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600 dark:bg-green-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() => setFormData({ ...formData, category: "TASK" })}
+                onClick={() => handleCategoryChange("TASK")}
               >
                 Task
               </button>
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-purple-50 hover:text-purple-600 ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-purple-50 hover:text-purple-600 ${
                   formData.category === "LAPORAN"
-                    ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600 dark:bg-purple-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() =>
-                  setFormData({ ...formData, category: "LAPORAN" })
-                }
+                onClick={() => handleCategoryChange("LAPORAN")}
               >
                 Laporan
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-yellow-600 ${
+                  formData.category === "JASA"
+                    ? "bg-yellow-50 text-yellow-600 ring-1 ring-yellow-600 dark:bg-yellow-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleCategoryChange("JASA")}
+              >
+                Jasa
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-pink-50 hover:text-pink-600 ${
+                  formData.category === "MATERIAL"
+                    ? "bg-pink-50 text-pink-600 ring-1 ring-pink-600 dark:bg-pink-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleCategoryChange("MATERIAL")}
+              >
+                Material
               </button>
             </div>
           </div>
           <div className="grid gap-3">
             <Label>Status</Label>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-2">
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
-                  formData.status === "INPROGRESS"
-                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600"
-                    : "bg-slate-50 text-slate-600"
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-gray-50 hover:text-gray-600 ${
+                  formData.status === "BACKLOG"
+                    ? "bg-gray-50 text-gray-600 ring-1 ring-gray-600 dark:bg-gray-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() =>
-                  setFormData({ ...formData, status: "INPROGRESS" })
-                }
+                onClick={() => handleStatusChange("BACKLOG")}
+              >
+                Backlog
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
+                  formData.status === "INPROGRESS"
+                    ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600 dark:bg-blue-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleStatusChange("INPROGRESS")}
               >
                 In Progress
               </button>
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
                   formData.status === "COMPLETED"
-                    ? "bg-green-50 text-green-600 ring-1 ring-green-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-green-50 text-green-600 ring-1 ring-green-600 dark:bg-green-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() =>
-                  setFormData({ ...formData, status: "COMPLETED" })
-                }
+                onClick={() => handleStatusChange("COMPLETED")}
               >
                 Completed
               </button>
               <button
-                className={`px-4 py-4 rounded-lg text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${
                   formData.status === "CANCEL"
-                    ? "bg-red-50 text-red-600 ring-1 ring-red-600"
-                    : "bg-slate-50 text-slate-600"
+                    ? "bg-red-50 text-red-600 ring-1 ring-red-600 dark:bg-red-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                 }`}
-                onClick={() => setFormData({ ...formData, status: "CANCEL" })}
+                onClick={() => handleStatusChange("CANCEL")}
               >
                 Cancel
               </button>

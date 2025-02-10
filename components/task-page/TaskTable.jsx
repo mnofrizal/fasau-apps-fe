@@ -100,6 +100,13 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     }
     return false;
   });
+  const [showJasaOnly, setShowJasaOnly] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("showJasaOnly");
+      return stored ? JSON.parse(stored) : false;
+    }
+    return false;
+  });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -114,6 +121,9 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
         return false;
       }
       if (showMemoOnly && task.category !== "MEMO") {
+        return false;
+      }
+      if (showJasaOnly && task.category !== "JASA") {
         return false;
       }
 
@@ -171,6 +181,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
     hideCompleted,
     showMemoOnly,
     showTodayOnly,
+    showJasaOnly,
   ]);
 
   const columns = [
@@ -190,6 +201,8 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
           MEMO: "blue",
           TASK: "yellow",
           LAPORAN: "purple",
+          JASA: "green",
+          MATERIAL: "pink",
         };
         const color = colorMap[kategori] || "gray";
         return (
@@ -231,6 +244,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
           COMPLETED: "green",
           INPROGRESS: "blue",
           CANCEL: "red",
+          BACKLOG: "yellow",
         };
         const color = colorMap[status] || "gray";
         return (
@@ -253,6 +267,11 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
       accessorKey: "keterangan",
       header: "Keterangan",
       size: 200,
+      cell: ({ row }) => (
+        <div className="line-clamp-4 break-words text-base text-gray-900 dark:text-gray-200">
+          {row.original.keterangan}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -421,6 +440,27 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                     }
                   </span>
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const newValue = !showJasaOnly;
+                    setShowJasaOnly(newValue);
+                    localStorage.setItem(
+                      "showJasaOnly",
+                      JSON.stringify(newValue)
+                    );
+                  }}
+                  className={`rounded-full px-4 shadow-none ${
+                    showJasaOnly
+                      ? "bg-green-50 text-green-600 border-green-600 hover:bg-green-100 hover:text-green-600 dark:bg-green-600 dark:text-white dark:hover:bg-green-700 dark:hover:text-white"
+                      : "hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-600 dark:hover:text-white"
+                  }`}
+                >
+                  Jasa{" "}
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
+                    {tasks.filter((task) => task.category === "JASA").length}
+                  </span>
+                </Button>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -433,6 +473,7 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="BACKLOG">Backlog</SelectItem>
                   <SelectItem value="CANCEL">Cancel</SelectItem>
                   <SelectItem value="INPROGRESS">In Progress</SelectItem>
                   <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -450,6 +491,8 @@ export function TaskTable({ tasks, onEditTask, onDeleteTask }) {
                   <SelectItem value="MEMO">Memo</SelectItem>
                   <SelectItem value="LAPORAN">Laporan</SelectItem>
                   <SelectItem value="TASK">Tugas</SelectItem>
+                  <SelectItem value="JASA">Jasa</SelectItem>
+                  <SelectItem value="MATERIAL">Material</SelectItem>
                 </SelectContent>
               </Select>
               <Popover>

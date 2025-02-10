@@ -162,9 +162,22 @@ export default function MonitoringPage() {
             {/* Recent Task Reports Card */}
             <Card className="bg-white shadow-lg dark:bg-gray-800">
               <CardContent className="p-6">
-                <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
-                  Laporan Terbaru
-                </h2>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                      Laporan Terbaru
+                    </h2>
+                  </div>
+                  <div className="rounded-lg bg-gray-100 px-4 py-2 dark:bg-gray-700">
+                    <p className="text-xl font-medium text-gray-600 dark:text-gray-400">
+                      Laporan hari ini:{" "}
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {reports.length}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
                 <Carousel
                   opts={{
                     loop: true,
@@ -399,7 +412,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT MITRA MULTI",
-                          count: 2,
+                          count: 3,
                           color: "bg-orange-50 dark:bg-orange-900/20",
                           textColor: "text-orange-600 dark:text-orange-400",
                           borderColor:

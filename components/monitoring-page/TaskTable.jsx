@@ -47,9 +47,15 @@ export default function TaskTable({
             ? (rowIndex % dataLength) + 1
             : rowIndex + 1;
           const createdAt = new Date(info.row.original.createdAt);
+          const updatedAt = info.row.original.updatedAt
+            ? new Date(info.row.original.updatedAt)
+            : null;
           const now = new Date();
           // Check if the task is created within the last 2 hours
           const isNew = now - createdAt < 2 * 60 * 60 * 1000;
+          // Check if the task was updated within the last 2 hours and it's not a new task
+          const isUpdate =
+            updatedAt && !isNew && now - updatedAt < 2 * 60 * 60 * 1000;
 
           return (
             <div className="relative text-center">
@@ -59,6 +65,11 @@ export default function TaskTable({
               {isNew && (
                 <div className="absolute -right-1 -top-3 animate-pulse rounded bg-pink-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
                   NEW
+                </div>
+              )}
+              {isUpdate && (
+                <div className="absolute -right-1 -top-3 animate-pulse rounded bg-orange-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md">
+                  UPDATE
                 </div>
               )}
             </div>
@@ -137,7 +148,7 @@ export default function TaskTable({
         minSize: 300,
         maxSize: 300,
         cell: (info) => (
-          <div className="break-words text-xl text-gray-600 dark:text-gray-300">
+          <div className="line-clamp-4 break-words text-xl text-gray-600 dark:text-gray-300">
             {info.getValue()}
           </div>
         ),
@@ -292,28 +303,42 @@ export default function TaskTable({
                         className={`border-b dark:border-gray-600
                           ${(() => {
                             const createdAt = new Date(row.original.createdAt);
+                            const updatedAt = row.original.updatedAt
+                              ? new Date(row.original.updatedAt)
+                              : null;
                             const now = new Date();
                             // Check if the task is created within the last 2 hours
                             const isNew = now - createdAt < 2 * 60 * 60 * 1000;
+                            // Check if the task was updated within the last 2 hours and it's not a new task
+                            const isUpdate =
+                              updatedAt &&
+                              !isNew &&
+                              now - updatedAt < 2 * 60 * 60 * 1000;
 
                             const categoryClasses =
-                              row.original.category === "MEMO"
-                                ? "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/30"
-                                : row.original.category === "TASK"
-                                ? "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/30"
-                                : row.original.category === "LAPORAN"
-                                ? "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30"
-                                : "hover:bg-gray-100 dark:hover:bg-gray-700";
+                              {
+                                MEMO: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/30",
+                                TASK: "bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/30",
+                                LAPORAN:
+                                  "bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/30",
+                                JASA: "bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/10 dark:hover:bg-purple-900/30",
+                                MATERIAL:
+                                  "bg-pink-50 hover:bg-pink-100 dark:bg-pink-900/10 dark:hover:bg-pink-900/30",
+                              }[row.original.category] ||
+                              "hover:bg-gray-100 dark:hover:bg-gray-700";
 
-                            const gradientClass = isNew
-                              ? row.original.category === "MEMO"
-                                ? "bg-gradient-to-r from-yellow-500/40"
-                                : row.original.category === "TASK"
-                                ? "bg-gradient-to-r from-blue-500/50"
-                                : row.original.category === "LAPORAN"
-                                ? "bg-gradient-to-r from-green-500/40"
-                                : ""
-                              : "";
+                            const gradientClass =
+                              isNew || isUpdate
+                                ? {
+                                    MEMO: "bg-gradient-to-r from-yellow-500/40",
+                                    TASK: "bg-gradient-to-r from-blue-500/50",
+                                    LAPORAN:
+                                      "bg-gradient-to-r from-green-500/40",
+                                    JASA: "bg-gradient-to-r from-purple-500/40",
+                                    MATERIAL:
+                                      "bg-gradient-to-r from-pink-500/40",
+                                  }[row.original.category] || ""
+                                : "";
 
                             return `${categoryClasses} ${gradientClass}`;
                           })()}`}

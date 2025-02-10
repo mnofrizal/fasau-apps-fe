@@ -44,7 +44,7 @@ export function AddTaskDialog({ onAddTask }) {
   const [formData, setFormData] = useState({
     title: "",
     category: "MEMO",
-    status: "INPROGRESS",
+    status: "BACKLOG",
     keterangan: "",
     sendWa: false,
   });
@@ -212,6 +212,26 @@ export function AddTaskDialog({ onAddTask }) {
               >
                 Laporan
               </button>
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-yellow-600 ${
+                  formData.category === "JASA"
+                    ? "bg-yellow-50 text-yellow-600 ring-1 ring-yellow-600 dark:bg-yellow-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleCategoryChange("JASA")}
+              >
+                Jasa
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-pink-50 hover:text-pink-600 ${
+                  formData.category === "MATERIAL"
+                    ? "bg-pink-50 text-pink-600 ring-1 ring-pink-600 dark:bg-pink-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleCategoryChange("MATERIAL")}
+              >
+                Material
+              </button>
             </div>
           </div>
 
@@ -223,6 +243,16 @@ export function AddTaskDialog({ onAddTask }) {
               Status
             </Label>
             <div className="flex flex-wrap gap-2">
+              <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-orange-50 hover:text-orange-600 ${
+                  formData.status === "BACKLOG"
+                    ? "bg-orange-50 text-orange-600 ring-1 ring-orange-600 dark:bg-orange-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleStatusChange("BACKLOG")}
+              >
+                Backlog
+              </button>
               <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
                   formData.status === "INPROGRESS"

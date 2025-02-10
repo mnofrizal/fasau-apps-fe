@@ -69,17 +69,24 @@ export default function TodayScheduleDisplay() {
                       </div>
                       <div className="flex flex-col gap-2">
                         {team.members.map((member, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800">
+                          <div
+                            key={i}
+                            className="flex items-center gap-4 rounded-lg bg-gray-100 p-2.5 py-2.5 dark:bg-gray-800"
+                          >
+                            <Avatar className="h-9 w-9">
                               <AvatarImage />
-                              <AvatarFallback className="bg-gray-300">
+                              <AvatarFallback
+                                className={`text-white font-semibold text-xl ${
+                                  i % 2 === 0 ? "bg-blue-500" : "bg-green-500"
+                                }`}
+                              >
                                 {member
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="text-xl text-gray-600 dark:text-gray-300">
+                            <div className="text-xl font-medium text-gray-800 dark:text-gray-200">
                               {member}
                             </div>
                           </div>

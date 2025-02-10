@@ -1,15 +1,8 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RecentTasksTable } from "@/components/recent-page/RecentTasksTable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,69 +16,31 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { getReports, deleteReport, updateReport } from "@/lib/api/reports";
-import Image from "next/image";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getSortedRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-} from "@tanstack/react-table";
-import {
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Eye,
-  CalendarIcon,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 
 export default function RecentTasksPage() {
-  const [sorting, setSorting] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [pageSize, setPageSize] = useState(8);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [kategoriFilter, setKategoriFilter] = useState("all");
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [reports, setReports] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [reportToEdit, setReportToEdit] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [editForm, setEditForm] = useState({
     description: "",
     pelapor: "",
     phone: "",
-    category: "",
+    category: "PM",
+    subCategory: "LAPORAN",
+    tindakan: "",
   });
 
   useEffect(() => {
@@ -93,7 +48,11 @@ export default function RecentTasksPage() {
       try {
         const response = await getReports();
         if (response.success) {
-          setReports(response.data);
+          const updatedReports = response.data.map((report) => ({
+            ...report,
+            subCategory: report.subCategory || "LAPORAN",
+          }));
+          setReports(updatedReports);
         }
       } catch (error) {
         console.error("Error fetching reports:", error);
@@ -103,205 +62,27 @@ export default function RecentTasksPage() {
     fetchReports();
   }, []);
 
-  const filteredData = useMemo(() => {
-    return reports.filter((item) => {
-      // Kategori filter
-      if (kategoriFilter !== "all" && item.category !== kategoriFilter) {
-        return false;
-      }
-
-      // Date range filter
-      if (dateRange?.from && dateRange?.to) {
-        const reportDate = new Date(item.createdAt);
-        const from = new Date(dateRange.from);
-        const to = new Date(dateRange.to);
-        if (reportDate < from || reportDate > to) {
-          return false;
-        }
-      }
-
-      return true;
+  const handleEdit = (report) => {
+    setReportToEdit(report);
+    setEditForm({
+      description: report.description,
+      pelapor: report.pelapor,
+      phone: report.phone,
+      category: report.category,
+      subCategory: report.subCategory || "LAPORAN",
+      tindakan: report.tindakan || "",
     });
-  }, [reports, kategoriFilter, dateRange]);
+    setEditDialogOpen(true);
+  };
 
-  const columns = [
-    {
-      accessorKey: "id",
-      header: "No",
-      size: 40,
-    },
-    {
-      accessorKey: "evidence",
-      header: "Eviden",
-      size: 100,
-      cell: ({ row }) => {
-        const isPDF = row.original.evidence.toLowerCase().endsWith(".pdf");
+  const handleDelete = (report) => {
+    setReportToDelete(report);
+    setDeleteDialogOpen(true);
+  };
 
-        if (isPDF) {
-          return (
-            <div className="flex items-center">
-              <Button
-                variant="link"
-                className="h-auto p-0 font-normal"
-                onClick={() => window.open(row.original.evidence, "_blank")}
-              >
-                View PDF
-              </Button>
-            </div>
-          );
-        }
-
-        return row.original.evidence ? (
-          <div className="relative h-16 w-16 overflow-hidden rounded-md">
-            <Image
-              src={row.original.evidence}
-              alt={`Evidence for ${row.original.description}`}
-              fill
-              style={{ objectFit: "cover" }}
-              sizes="64px"
-              onClick={() => window.open(row.original.evidence, "_blank")}
-              className="cursor-pointer transition-opacity hover:opacity-80"
-            />
-          </div>
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-md bg-gray-200 text-gray-600">
-            No Image
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "description",
-      header: "Uraian",
-      size: 200,
-      cell: ({ row }) => {
-        const fullText = row.original.description;
-        const truncatedText =
-          fullText.length > 50 ? `${fullText.slice(0, 50)}...` : fullText;
-        return (
-          <div className="space-y-1">
-            <div className="text-base" title={fullText}>
-              {truncatedText}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "pelapor",
-      header: "Pelapor",
-      size: 150,
-      cell: ({ row }) => {
-        return (
-          <div className="space-y-1">
-            <div className="font-medium">{row.original.pelapor}</div>
-            <div className="text-xs text-muted-foreground">
-              {row.original.phone}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Waktu Lapor",
-      size: 120,
-      cell: ({ row }) => {
-        const date = new Date(row.original.createdAt);
-        return (
-          <div className="space-y-0.5">
-            <div>{format(date, "dd MMM yyyy")}</div>
-            <div className="text-xs text-muted-foreground">
-              {format(date, "HH:mm")}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "category",
-      header: "Kategori",
-      size: 100,
-      cell: ({ row }) => {
-        return (
-          <Badge
-            variant="outline"
-            className={` p-2 px-6 ${
-              row.original.category === "CM"
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-blue-500 bg-blue-50 text-blue-700"
-            }`}
-          >
-            {row.original.category}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "actions",
-      size: 50,
-      cell: ({ row }) => {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => console.log("View", row.original)}
-              >
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setReportToEdit(row.original);
-                  setEditForm({
-                    description: row.original.description,
-                    pelapor: row.original.pelapor,
-                    phone: row.original.phone,
-                    category: row.original.category,
-                  });
-                  setEditDialogOpen(true);
-                }}
-              >
-                Edit Task
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600"
-                onClick={() => {
-                  setReportToDelete(row.original);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                Delete Report
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
-
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      globalFilter,
-      pagination: {
-        pageSize,
-        pageIndex,
-      },
-    },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-  });
+  const handleViewDetails = (report) => {
+    console.log("View details for report:", report);
+  };
 
   return (
     <main className="flex-1 space-y-6 py-8">
@@ -311,183 +92,14 @@ export default function RecentTasksPage() {
           View your latest report activities
         </p>
       </div>
-      <div className="flex justify-between">
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search reports..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-8"
-          />
-        </div>
 
-        <div className="flex items-center space-x-2">
-          <Select value={kategoriFilter} onValueChange={setKategoriFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="PM">PM</SelectItem>
-              <SelectItem value="CM">CM</SelectItem>
-            </SelectContent>
-          </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={`w-[300px] justify-start text-left font-normal ${
-                  !dateRange?.from && "text-muted-foreground"
-                }`}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange?.to ? (
-                    <>
-                      {format(dateRange?.from, "LLL dd, y")} -{" "}
-                      {format(dateRange?.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange?.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>Pick a date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-      <Card>
-        <div className="overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="px-4 py-4 font-semibold uppercase text-gray-700 dark:text-gray-300"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder ? null : (
-                        <div
-                          className={`flex items-center space-x-2 ${
-                            header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
-                          }`}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                          {header.column.getCanSort() && (
-                            <div className="w-4">
-                              {header.column.getIsSorted() === "asc" ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : header.column.getIsSorted() === "desc" ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : null}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-4 py-3">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+      <RecentTasksTable
+        reports={reports}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onViewDetails={handleViewDetails}
+      />
 
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <span>Show</span>
-            <Select
-              value={pageSize.toString()}
-              onValueChange={(value) => {
-                setPageSize(Number(value));
-                setPageIndex(0);
-              }}
-            >
-              <SelectTrigger className="mx-2 h-8 w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 20, 30, 40, 50].map((size) => (
-                  <SelectItem key={size} value={size.toString()}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span>per page</span>
-          </div>
-
-          <div className="flex items-center space-x-6">
-            <span className="text-sm text-muted-foreground">
-              Showing {table.getRowModel().rows.length} of {filteredData.length}{" "}
-              reports
-            </span>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Card>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -505,10 +117,13 @@ export default function RecentTasksPage() {
                 try {
                   await deleteReport(reportToDelete.id);
                   setDeleteDialogOpen(false);
-                  // Refresh the reports list
                   const response = await getReports();
                   if (response.success) {
-                    setReports(response.data);
+                    const updatedReports = response.data.map((report) => ({
+                      ...report,
+                      subCategory: report.subCategory || "LAPORAN",
+                    }));
+                    setReports(updatedReports);
                   }
                 } catch (error) {
                   console.error("Error deleting report:", error);
@@ -522,95 +137,237 @@ export default function RecentTasksPage() {
       </AlertDialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Report</DialogTitle>
-            <DialogDescription>
-              Make changes to the report details.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Uraian
-              </Label>
-              <textarea
-                id="description"
-                className="col-span-3 min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={editForm.description}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="pelapor" className="text-right">
-                Pelapor
-              </Label>
-              <Input
-                id="pelapor"
-                className="col-span-3"
-                value={editForm.pelapor}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, pelapor: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
-                Phone
-              </Label>
-              <Input
-                id="phone"
-                className="col-span-3"
-                value={editForm.phone}
-                onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, phone: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category
-              </Label>
-              <Select
-                value={editForm.category}
-                onValueChange={(value) =>
-                  setEditForm((prev) => ({ ...prev, category: value }))
-                }
+        <DialogContent
+          className={`p-0 transition-all ${
+            editForm.subCategory === "TEMUAN"
+              ? "sm:max-w-[900px]"
+              : "sm:max-w-[500px]"
+          }`}
+        >
+          <motion.div
+            layout
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="p-6"
+          >
+            <DialogHeader className="">
+              <DialogTitle className="text-xl">Edit Report</DialogTitle>
+            </DialogHeader>
+
+            <motion.div layout className="py-4">
+              <div className="grid grid-cols-[400px,1fr] gap-6">
+                <div className="space-y-6">
+                  <div className="mt-4 flex items-center gap-4">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full bg-slate-100">
+                      <svg
+                        className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-slate-500"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-medium">{editForm.pelapor}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {editForm.phone}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-3">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Enter report description"
+                      className="h-32"
+                      value={editForm.description}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-3">
+                    <Label>Category</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${
+                          editForm.category === "PM"
+                            ? "bg-blue-50 text-blue-600 ring-1 ring-blue-600 dark:bg-blue-600 dark:text-white"
+                            : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                        }`}
+                        onClick={() =>
+                          setEditForm({ ...editForm, category: "PM" })
+                        }
+                      >
+                        PM
+                      </button>
+                      <button
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-green-50 hover:text-green-600 ${
+                          editForm.category === "CM"
+                            ? "bg-green-50 text-green-600 ring-1 ring-green-600 dark:bg-green-600 dark:text-white"
+                            : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                        }`}
+                        onClick={() =>
+                          setEditForm({ ...editForm, category: "CM" })
+                        }
+                      >
+                        CM
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <Label>Sub Category</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-yellow-600 ${
+                          editForm.subCategory === "TEMUAN"
+                            ? "bg-yellow-50 text-yellow-600 ring-1 ring-yellow-600 dark:bg-yellow-600 dark:text-white"
+                            : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                        }`}
+                        onClick={() =>
+                          setEditForm({ ...editForm, subCategory: "TEMUAN" })
+                        }
+                      >
+                        Temuan
+                      </button>
+                      <button
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-purple-50 hover:text-purple-600 ${
+                          editForm.subCategory === "LAPORAN"
+                            ? "bg-purple-50 text-purple-600 ring-1 ring-purple-600 dark:bg-purple-600 dark:text-white"
+                            : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                        }`}
+                        onClick={() =>
+                          setEditForm({ ...editForm, subCategory: "LAPORAN" })
+                        }
+                      >
+                        Laporan
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {editForm.subCategory === "TEMUAN" && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0, x: 20 }}
+                      animate={{ opacity: 1, width: "100%", x: 0 }}
+                      exit={{ opacity: 0, width: 0, x: -20 }}
+                      transition={{
+                        duration: 0.3,
+                        opacity: { delay: 0.1 },
+                      }}
+                      className="relative flex h-full flex-col pl-6"
+                    >
+                      <div className="absolute left-0 top-0 h-full w-[1px] bg-border" />
+                      <div className="flex flex-1 flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="action">Tindakan</Label>
+                          <div className="text-sm text-muted-foreground">
+                            Last Update:{" "}
+                            {new Date(
+                              reportToEdit?.updatedAt
+                            ).toLocaleDateString("id-ID", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                            ,{" "}
+                            {new Date(
+                              reportToEdit?.updatedAt
+                            ).toLocaleTimeString("id-ID", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </div>
+                        <Textarea
+                          id="action"
+                          placeholder="Enter action taken"
+                          className="min-h-[200px] flex-1"
+                          value={editForm.tindakan}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              tindakan: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            <div className="flex justify-end space-x-2 pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                className="px-6"
               >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PM">PM</SelectItem>
-                  <SelectItem value="CM">CM</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={async () => {
-                try {
-                  await updateReport(reportToEdit.id, editForm);
-                  setEditDialogOpen(false);
-                  // Refresh the reports list
-                  const response = await getReports();
-                  if (response.success) {
-                    setReports(response.data);
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  setIsLoading(true);
+                  try {
+                    const result = await updateReport(
+                      reportToEdit.id,
+                      editForm
+                    );
+                    if (result.success) {
+                      toast({
+                        title: "Success",
+                        description: "Report updated successfully",
+                      });
+                      setEditDialogOpen(false);
+                      const response = await getReports();
+                      if (response.success) {
+                        const updatedReports = response.data.map((report) => ({
+                          ...report,
+                          subCategory: report.subCategory || "LAPORAN",
+                        }));
+                        setReports(updatedReports);
+                      }
+                    } else {
+                      toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description:
+                          result.message || "Failed to update report",
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      variant: "destructive",
+                      title: "Error",
+                      description:
+                        "An error occurred while updating the report",
+                    });
+                    console.error("Error updating report:", error);
+                  } finally {
+                    setIsLoading(false);
                   }
-                } catch (error) {
-                  console.error("Error updating report:", error);
-                }
-              }}
-            >
-              Save changes
-            </Button>
-          </DialogFooter>
+                }}
+                className="bg-primary px-6 hover:bg-primary/90"
+                disabled={isLoading || !editForm.description}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </motion.div>
         </DialogContent>
       </Dialog>
     </main>
