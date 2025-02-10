@@ -42,7 +42,7 @@ export default function Navigation() {
               {[
                 { href: "/monitoring", label: "Monitoring" },
                 { href: "/dashboard/tasks", label: "Tasks" },
-                { href: "/dashboard/recent", label: "Recent" },
+                { href: "/dashboard/recent", label: "Laporan" },
                 { href: "/dashboard/pm", label: "PM" },
                 { href: "/dashboard/acara", label: "Acara" },
               ].map((link) => (

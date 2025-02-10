@@ -293,7 +293,8 @@ export default function TaskTable({
                           ${(() => {
                             const createdAt = new Date(row.original.createdAt);
                             const now = new Date();
-                            const isNew = now - createdAt < 3 * 60 * 60 * 1000;
+                            // Check if the task is created within the last 2 hours
+                            const isNew = now - createdAt < 2 * 60 * 60 * 1000;
 
                             const categoryClasses =
                               row.original.category === "MEMO"

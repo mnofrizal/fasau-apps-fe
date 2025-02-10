@@ -348,7 +348,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT MUTIARA KAHAL",
-                          count: 20,
+                          count: 21,
                           color: "bg-green-50 dark:bg-green-900/20",
                           textColor: "text-green-600 dark:text-green-400",
                           borderColor: "border-green-200 dark:border-green-800",
@@ -365,7 +365,7 @@ export default function MonitoringPage() {
                         },
                         {
                           company: "PT TRIDAYA PUTRA",
-                          count: 22,
+                          count: 21,
                           color: "bg-purple-50 dark:bg-purple-900/20",
                           textColor: "text-purple-600 dark:text-purple-400",
                           borderColor:

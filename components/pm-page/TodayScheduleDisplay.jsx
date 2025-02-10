@@ -56,10 +56,10 @@ export default function TodayScheduleDisplay() {
                     className="flex flex-col justify-between rounded-lg border p-4 dark:border-gray-600 dark:bg-gray-700"
                   >
                     <div>
-                      <h2 className="mb-2 text-2xl font-semibold">
+                      <h2 className="mb-2 text-3xl font-semibold">
                         {asset.name}
                       </h2>
-                      <p className="mb-3 text-base text-muted-foreground">
+                      <p className="mb-3 text-lg text-muted-foreground">
                         {asset.description}
                       </p>
                     </div>
@@ -79,7 +79,7 @@ export default function TodayScheduleDisplay() {
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="text-lg text-gray-600 dark:text-gray-300">
+                            <div className="text-xl text-gray-600 dark:text-gray-300">
                               {member}
                             </div>
                           </div>
