@@ -366,72 +366,71 @@ export const pmSchedule = {
   },
   week2: {
     SENIN: [
-      { assetId: 11, teamId: 3 },
-      { assetId: 16, teamId: 4 },
+      { assetId: 11, teamId: 2 },
+      { assetId: 16, teamId: 3 },
     ],
     SELASA: [
-      { assetId: 12, teamId: 4 },
-      { assetId: 17, teamId: 1 },
+      { assetId: 12, teamId: 3 },
+      { assetId: 17, teamId: 4 },
     ],
     RABU: [
-      { assetId: 13, teamId: 1 },
-      { assetId: 18, teamId: 2 },
+      { assetId: 13, teamId: 4 },
+      { assetId: 18, teamId: 1 },
     ],
     KAMIS: [
-      { assetId: 14, teamId: 2 },
-      { assetId: 19, teamId: 3 },
+      { assetId: 14, teamId: 1 },
+      { assetId: 19, teamId: 2 },
     ],
     JUMAT: [
-      { assetId: 15, teamId: 3 },
-      { assetId: 20, teamId: 4 },
+      { assetId: 15, teamId: 2 },
+      { assetId: 20, teamId: 3 },
     ],
   },
   week3: {
     SENIN: [
-      { assetId: 21, teamId: 1 },
-      { assetId: 26, teamId: 2 },
+      { assetId: 21, teamId: 3 },
+      { assetId: 26, teamId: 4 },
     ],
     SELASA: [
-      { assetId: 22, teamId: 2 },
-      { assetId: 27, teamId: 3 },
+      { assetId: 22, teamId: 4 },
+      { assetId: 27, teamId: 1 },
     ],
     RABU: [
-      { assetId: 23, teamId: 3 },
-      { assetId: 28, teamId: 4 },
+      { assetId: 23, teamId: 1 },
+      { assetId: 28, teamId: 2 },
     ],
     KAMIS: [
-      { assetId: 24, teamId: 4 },
-      { assetId: 29, teamId: 1 },
+      { assetId: 24, teamId: 2 },
+      { assetId: 29, teamId: 3 },
     ],
     JUMAT: [
-      { assetId: 25, teamId: 1 },
-      { assetId: 30, teamId: 2 },
+      { assetId: 25, teamId: 3 },
+      { assetId: 30, teamId: 4 },
     ],
   },
   week4: {
     SENIN: [
-      { assetId: 31, teamId: 3 },
-      { assetId: 1, teamId: 4 },
+      { assetId: 31, teamId: 4 },
+      { assetId: 1, teamId: 1 },
     ],
     SELASA: [
-      { assetId: 32, teamId: 4 },
-      { assetId: 2, teamId: 1 },
+      { assetId: 32, teamId: 1 },
+      { assetId: 2, teamId: 2 },
     ],
     RABU: [
-      { assetId: 1, teamId: 1 },
-      { assetId: 3, teamId: 2 },
+      { assetId: 1, teamId: 2 },
+      { assetId: 3, teamId: 3 },
     ],
     KAMIS: [
-      { assetId: 2, teamId: 2 },
-      { assetId: 4, teamId: 3 },
+      { assetId: 2, teamId: 3 },
+      { assetId: 4, teamId: 4 },
     ],
     JUMAT: [
-      { assetId: 3, teamId: 3 },
-      { assetId: 1, teamId: 4 },
+      { assetId: 3, teamId: 4 },
+      { assetId: 1, teamId: 1 },
     ],
   },
 };
-
 // Function to determine which team is working on a given date
 export const getTeamAssignment = (date) => {
   const startDate = new Date("2025-01-01"); // Starting point of the 52-week cycle

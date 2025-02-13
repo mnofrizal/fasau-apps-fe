@@ -18,11 +18,20 @@ export default function TodayScheduleDisplay() {
 
   // Function to get week details (cycle number 1-4 and absolute week number 1-52)
   const getWeekDetails = (date) => {
-    const weeksDiff = Math.floor(
-      (date - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
-    const weekInYear = Math.floor(weeksDiff % 52) + 1;
-    const weekInCycle = (weeksDiff % 4) + 1;
+    // Get the ISO week number
+    const target = new Date(date.getTime());
+    const dayNr = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+    }
+    const weekInYear = 1 + Math.ceil((firstThursday - target) / 604800000);
+
+    // Calculate cycle week (1-4) based on the week number
+    const weekInCycle = ((weekInYear - 1) % 4) + 1;
+
     return { weekInCycle, weekInYear };
   };
 
@@ -40,9 +49,12 @@ export default function TodayScheduleDisplay() {
       <div>
         <Card className="bg-white shadow-lg dark:bg-gray-800">
           <CardContent className="p-6">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
-              PM Hari Ini (Minggu ke-{weekInYear})
-            </h2>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-4xl font-bold text-primary">PM Hari Ini</h2>
+              <div className="rounded-full bg-primary/10 px-4 py-2 text-lg font-semibold text-primary">
+                Minggu ke-{weekInYear}
+              </div>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {weekSchedule[dayName]?.map((schedule, index) => {
                 const asset = pmAssets.find((a) => a.id === schedule.assetId);

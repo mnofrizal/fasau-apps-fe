@@ -49,11 +49,20 @@ export default function PMScheduleDisplay() {
 
   // Function to get week details (cycle number 1-4 and absolute week number 1-52)
   const getWeekDetails = (date) => {
-    const weeksDiff = Math.floor(
-      (date - startDate) / (7 * 24 * 60 * 60 * 1000)
-    );
-    const weekInYear = Math.floor(weeksDiff % 52) + 1;
-    const weekInCycle = (weeksDiff % 4) + 1;
+    // Get the ISO week number
+    const target = new Date(date.getTime());
+    const dayNr = (date.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    const firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() !== 4) {
+      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+    }
+    const weekInYear = 1 + Math.ceil((firstThursday - target) / 604800000);
+
+    // Calculate cycle week (1-4) based on the week number
+    const weekInCycle = ((weekInYear - 1) % 4) + 1;
+
     return { weekInCycle, weekInYear };
   };
 
@@ -150,17 +159,47 @@ export default function PMScheduleDisplay() {
                 key={`${weekIndex}-${day}`}
                 className={`${
                   week.dates[index].toDateString() === today.toDateString()
-                    ? "border-primary"
-                    : ""
+                    ? "border-2 border-primary/20 bg-gradient-to-br from-indigo-100 via-blue-50 to-background shadow-xl dark:from-indigo-500/10 dark:via-blue-500/5 dark:to-background"
+                    : `bg-gradient-to-br ${
+                        index % 3 === 0
+                          ? "from-blue-50/50 to-background dark:from-blue-500/5"
+                          : index % 3 === 1
+                          ? "from-purple-50/50 to-background dark:from-purple-500/5"
+                          : "from-indigo-50/50 to-background dark:from-indigo-500/5"
+                      }`
                 }`}
               >
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    {day} -{" "}
-                    {week.dates[index].toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                    })}
+                  <CardTitle
+                    className={`text-lg ${
+                      week.dates[index].toDateString() === today.toDateString()
+                        ? "text-primary font-bold"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>
+                        {day} -{" "}
+                        {week.dates[index].toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                      {week.dates[index].toDateString() ===
+                        today.toDateString() && (
+                        <span
+                          className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                            index % 3 === 0
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
+                              : index % 3 === 1
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400"
+                              : "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400"
+                          }`}
+                        >
+                          Hari Ini
+                        </span>
+                      )}
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -176,9 +215,23 @@ export default function PMScheduleDisplay() {
                       return (
                         <div
                           key={index}
-                          className="rounded-lg border bg-muted/50 p-3"
+                          className={`rounded-lg border p-3 transition-colors hover:bg-muted/70 ${
+                            index % 3 === 0
+                              ? "bg-blue-50/50 dark:bg-blue-500/5"
+                              : index % 3 === 1
+                              ? "bg-purple-50/50 dark:bg-purple-500/5"
+                              : "bg-indigo-50/50 dark:bg-indigo-500/5"
+                          }`}
                         >
-                          <h3 className="mb-1 text-sm font-semibold">
+                          <h3
+                            className={`mb-1 text-sm font-semibold ${
+                              index % 3 === 0
+                                ? "text-blue-700 dark:text-blue-400"
+                                : index % 3 === 1
+                                ? "text-purple-700 dark:text-purple-400"
+                                : "text-indigo-700 dark:text-indigo-400"
+                            }`}
+                          >
                             {asset.name}
                           </h3>
                           <p className="mb-2 text-xs text-muted-foreground">

@@ -48,11 +48,30 @@ export default function MonitoringPage() {
   const socket = useSocket();
   const { toast } = useToast();
 
+  // Effect for midnight reload
   useEffect(() => {
+    // Function to check if it's midnight
+    const checkMidnight = () => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        window.location.reload();
+      }
+    };
+
+    // Check every minute
+    const midnightInterval = setInterval(checkMidnight, 60000); // 60000 ms = 1 minute
+
     // Initial data fetch
     initializeData();
 
-    // Socket event listeners
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(midnightInterval);
+    };
+  }, [initializeData]);
+
+  // Effect for socket event listeners
+  useEffect(() => {
     socket.on("task_updated", () => {
       fetchTasks();
       toast({
@@ -82,7 +101,7 @@ export default function MonitoringPage() {
       socket.off("report_created");
       socket.off("acara_updated");
     };
-  }, [toast]);
+  }, [fetchTasks, fetchReports, fetchAcara, socket, toast]);
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-gray-900">
       <Navigation />
@@ -278,41 +297,46 @@ export default function MonitoringPage() {
             {/* Employee Tasks Card */}
             <TodayScheduleDisplay />
 
-            {acara.length > 0 && (
+            {acara.filter((event) => event.status !== "DONE").length > 0 && (
               <Card className="bg-white shadow-lg dark:bg-gray-800">
                 <CardContent className="p-6">
                   <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
                     Acara Hari Ini
                   </h2>
                   <div className="space-y-4">
-                    {acara.map((event, index) => (
-                      <div
-                        key={index}
-                        className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-600 dark:bg-gray-700"
-                      >
-                        <div className="mb-2 flex items-center space-x-3">
-                          <div
-                            className={`flex h-16 w-16 items-center justify-center rounded-full bg-blue-600`}
-                          >
-                            <span className="text-xl font-semibold text-white">
-                              {new Date(event.dateTime).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              })}
-                            </span>
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                              {event.title}
-                            </h3>
-                            <p className="text-xl text-gray-700 dark:text-gray-300">
-                              {event.location}
-                            </p>
+                    {acara
+                      .filter((event) => event.status !== "DONE")
+                      .map((event, index) => (
+                        <div
+                          key={index}
+                          className="rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-600 dark:bg-gray-700"
+                        >
+                          <div className="mb-2 flex items-center space-x-3">
+                            <div
+                              className={`flex h-16 w-16 items-center justify-center rounded-full bg-blue-600`}
+                            >
+                              <span className="text-xl font-semibold text-white">
+                                {new Date(event.dateTime).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )}
+                              </span>
+                            </div>
+                            <div>
+                              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {event.title}
+                              </h3>
+                              <p className="text-xl text-gray-700 dark:text-gray-300">
+                                {event.location}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </CardContent>
               </Card>
