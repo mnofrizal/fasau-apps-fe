@@ -49,26 +49,26 @@ export default function MonitoringPage() {
   const { toast } = useToast();
 
   // Effect for midnight reload
-  useEffect(() => {
-    // Function to check if it's midnight
-    const checkMidnight = () => {
-      const now = new Date();
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        window.location.reload();
-      }
-    };
+  // useEffect(() => {
+  //   // Function to check if it's midnight
+  //   const checkMidnight = () => {
+  //     const now = new Date();
+  //     if (now.getHours() === 0 && now.getMinutes() === 0) {
+  //       window.location.reload();
+  //     }
+  //   };
 
-    // Check every minute
-    const midnightInterval = setInterval(checkMidnight, 60000); // 60000 ms = 1 minute
+  //   // Check every minute
+  //   const midnightInterval = setInterval(checkMidnight, 60000); // 60000 ms = 1 minute
 
-    // Initial data fetch
-    initializeData();
+  //   // Initial data fetch
+  //   initializeData();
 
-    // Cleanup interval on unmount
-    return () => {
-      clearInterval(midnightInterval);
-    };
-  }, [initializeData]);
+  //   // Cleanup interval on unmount
+  //   return () => {
+  //     clearInterval(midnightInterval);
+  //   };
+  // }, [initializeData]);
 
   // Effect for socket event listeners
   useEffect(() => {
