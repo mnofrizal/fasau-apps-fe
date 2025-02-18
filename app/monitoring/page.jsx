@@ -33,7 +33,22 @@ import { AlertCircle, Users } from "lucide-react";
 
 export default function MonitoringPage() {
   const [autoScroll, setAutoScroll] = useState(true);
-  const [showInProgressOnly, setShowInProgressOnly] = useState(false);
+  const [showInProgressOnly, setShowInProgressOnly] = useState(() => {
+    // Try to get saved value from localStorage
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("showInProgressOnly");
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+
+  // Save to localStorage when value changes
+  useEffect(() => {
+    localStorage.setItem(
+      "showInProgressOnly",
+      JSON.stringify(showInProgressOnly)
+    );
+  }, [showInProgressOnly]);
   const {
     tasks,
     reports,
