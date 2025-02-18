@@ -431,45 +431,6 @@ export const pmSchedule = {
     ],
   },
 };
-// Function to determine which team is working on a given date
-export const getTeamAssignment = (date) => {
-  const startDate = new Date("2025-01-01"); // Starting point of the 52-week cycle
-  const targetDate = new Date(date);
-
-  // Calculate weeks elapsed since start
-  const weeksDiff = Math.floor(
-    (targetDate - startDate) / (7 * 24 * 60 * 60 * 1000)
-  );
-
-  // Determine which week in the 4-week cycle (0-3)
-  const weekInCycle = weeksDiff % 4;
-
-  // Get day of week (0-6, where 0 is Sunday)
-  const dayOfWeek = targetDate.getDay();
-
-  // Convert to our schedule format (we only have Mon-Fri)
-  const days = ["", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT"];
-  const scheduleDay = days[dayOfWeek];
-
-  // If weekend or invalid day, return null
-  if (!scheduleDay) return null;
-
-  // Get week schedule
-  const weekSchedule = pmSchedule[`week${weekInCycle + 1}`];
-  if (!weekSchedule) return null;
-
-  // Get day schedule
-  const daySchedule = weekSchedule[scheduleDay];
-  if (!daySchedule) return null;
-
-  // Return the assignments for this day
-  return daySchedule.map((assignment) => ({
-    asset: pmAssets.find((a) => a.id === assignment.assetId),
-    team: Object.values(pmTeams).find(
-      (_, index) => index + 1 === assignment.teamId
-    ),
-  }));
-};
 
 /*
 Usage Example:
