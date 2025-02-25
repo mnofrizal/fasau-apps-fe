@@ -133,6 +133,16 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }) {
                 Laporan
               </button>
               <button
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-teal-50 hover:text-teal-600 ${
+                  formData.category === "TEMUAN"
+                    ? "bg-teal-50 text-teal-600 ring-1 ring-teal-600 dark:bg-teal-600 dark:text-white"
+                    : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
+                }`}
+                onClick={() => handleCategoryChange("TEMUAN")}
+              >
+                Temuan
+              </button>
+              <button
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors hover:bg-yellow-50 hover:text-yellow-600 ${
                   formData.category === "JASA"
                     ? "bg-yellow-50 text-yellow-600 ring-1 ring-yellow-600 dark:bg-yellow-600 dark:text-white"

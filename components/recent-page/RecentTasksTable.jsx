@@ -204,11 +204,11 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
       {
         accessorKey: "description",
         header: "Uraian",
-        size: 200,
+        size: 400,
         cell: ({ row }) => {
           const fullText = row.original.description;
           const truncatedText =
-            fullText.length > 50 ? `${fullText.slice(0, 50)}...` : fullText;
+            fullText.length > 50 ? `${fullText.slice(0, 80)}...` : fullText;
           return (
             <div className="space-y-1">
               <div className="text-base" title={fullText}>
@@ -236,7 +236,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
       {
         accessorKey: "createdAt",
         header: "Waktu Lapor",
-        size: 120,
+        size: 150,
         cell: ({ row }) => {
           const date = new Date(row.original.createdAt);
           return (
@@ -252,44 +252,50 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
       {
         accessorKey: "category",
         header: "Kategori",
-        size: 100,
+        size: 20,
         cell: ({ row }) => {
           return (
-            <Badge
-              variant="outline"
-              className={`p-2 px-6 ${
-                row.original.category === "CM"
-                  ? "border-green-500 bg-green-50 text-green-700"
-                  : "border-blue-500 bg-blue-50 text-blue-700"
-              }`}
-            >
-              {row.original.category}
-            </Badge>
+            <div className="flex space-x-2">
+              <Badge
+                variant="outline"
+                className={`p-1 px-4 rounded-full ${
+                  row.original.category === "CM"
+                    ? "border-green-500 bg-green-50 text-green-700"
+                    : "border-purple-500 bg-purple-50 text-purple-700"
+                }`}
+              >
+                {row.original.category}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={`p-1 px-4 rounded-full ${
+                  row.original.subCategory === "TEMUAN"
+                    ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+                    : "border-blue-500 bg-blue-50 text-blue-700"
+                }`}
+              >
+                {row.original.subCategory}
+              </Badge>
+            </div>
           );
         },
       },
+
       {
-        accessorKey: "subCategory",
-        header: "Sub Kategori",
-        size: 100,
+        accessorKey: "status",
+        header: "STATUS",
+        size: 20,
         cell: ({ row }) => {
           return (
-            <Badge
-              variant="outline"
-              className={`p-2 px-6 ${
-                row.original.subCategory === "TEMUAN"
-                  ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                  : "border-purple-500 bg-purple-50 text-purple-700"
-              }`}
-            >
-              {row.original.subCategory}
+            <Badge variant="outline" className={`p-2 px-6`}>
+              {row.original.status}
             </Badge>
           );
         },
       },
       {
         id: "actions",
-        size: 50,
+        size: 20,
         cell: ({ row }) => {
           return (
             <DropdownMenu>

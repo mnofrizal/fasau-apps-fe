@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +35,7 @@ export default function RecentTasksPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [reportToEdit, setReportToEdit] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmTemuanDialog, setConfirmTemuanDialog] = useState(false);
   const { toast } = useToast();
   const [editForm, setEditForm] = useState({
     description: "",
@@ -236,9 +239,7 @@ export default function RecentTasksPage() {
                             ? "bg-yellow-50 text-yellow-600 ring-1 ring-yellow-600 dark:bg-yellow-600 dark:text-white"
                             : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-gray-200"
                         }`}
-                        onClick={() =>
-                          setEditForm({ ...editForm, subCategory: "TEMUAN" })
-                        }
+                        onClick={() => setConfirmTemuanDialog(true)}
                       >
                         Temuan
                       </button>
@@ -273,7 +274,6 @@ export default function RecentTasksPage() {
                       <div className="absolute left-0 top-0 h-full w-[1px] bg-border" />
                       <div className="flex flex-1 flex-col space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="action">Tindakan</Label>
                           <div className="text-sm text-muted-foreground">
                             Last Update:{" "}
                             {new Date(
@@ -291,19 +291,133 @@ export default function RecentTasksPage() {
                               minute: "2-digit",
                             })}
                           </div>
+                          <Badge
+                            variant={
+                              reportToEdit?.status === "COMPLETED"
+                                ? "success"
+                                : "secondary"
+                            }
+                          >
+                            {reportToEdit?.status}
+                          </Badge>
                         </div>
-                        <Textarea
-                          id="action"
-                          placeholder="Enter action taken"
-                          className="min-h-[200px] flex-1"
-                          value={editForm.tindakan}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              tindakan: e.target.value,
-                            })
-                          }
-                        />
+                        <Tabs defaultValue="action" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="action">Tindakan</TabsTrigger>
+                            <TabsTrigger value="history">
+                              Status History
+                            </TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="action" className="mt-2">
+                            <Textarea
+                              id="action"
+                              placeholder="Enter action taken"
+                              className="min-h-[350px] flex-1"
+                              value={editForm.tindakan}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  tindakan: e.target.value,
+                                })
+                              }
+                            />
+                          </TabsContent>
+                          <TabsContent value="history" className="mt-2">
+                            <div className="rounded-md p-6 px-2">
+                              <div className="space-y-8">
+                                {[...(reportToEdit?.statusHistory || [])]
+                                  .reverse()
+                                  .map((history, index, reversedArray) => (
+                                    <div key={index} className="relative">
+                                      {index !==
+                                        reportToEdit.statusHistory.length -
+                                          1 && (
+                                        <div className="absolute left-6 top-8 h-full w-px bg-border" />
+                                      )}
+                                      <div className="flex gap-3">
+                                        <div
+                                          className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border ${
+                                            history.status === "COMPLETED"
+                                              ? "bg-green-50 text-green-600"
+                                              : "bg-slate-50 text-slate-600"
+                                          }`}
+                                        >
+                                          {history.status === "COMPLETED" ? (
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="20"
+                                              height="20"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <path d="M20 6 9 17l-5-5" />
+                                            </svg>
+                                          ) : (
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="20"
+                                              height="20"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <circle cx="12" cy="12" r="10" />
+                                              <path d="M12 8v4" />
+                                              <path d="M12 16h.01" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <div className="flex flex-1 flex-col py-2">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <Badge
+                                              variant={
+                                                history.status === "COMPLETED"
+                                                  ? "success"
+                                                  : "secondary"
+                                              }
+                                            >
+                                              {history.status}
+                                            </Badge>
+                                            <span className="text-xs text-muted-foreground">
+                                              {new Date(
+                                                history.createdAt
+                                              ).toLocaleDateString("id-ID", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })}
+                                              {", "}
+                                              {new Date(
+                                                history.createdAt
+                                              ).toLocaleTimeString("id-ID", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })}
+                                            </span>
+                                          </div>
+                                          <div className="mt-1 flex items-center gap-2">
+                                            <span className="text-sm font-medium">
+                                              {history.changedBy}
+                                            </span>
+                                          </div>
+                                          <p className="mt-1 text-sm text-muted-foreground">
+                                            {history.notes}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
                       </div>
                     </motion.div>
                   )}
@@ -370,6 +484,32 @@ export default function RecentTasksPage() {
           </motion.div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={confirmTemuanDialog}
+        onOpenChange={setConfirmTemuanDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Perubahan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah anda yakin akan mengubah laporan ini ke kategori Task? Ini
+              akan menjadikan report ke kategori Task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setEditForm({ ...editForm, subCategory: "TEMUAN" });
+                setConfirmTemuanDialog(false);
+              }}
+            >
+              Ya, Ubah
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
