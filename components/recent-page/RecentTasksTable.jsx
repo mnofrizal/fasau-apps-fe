@@ -208,7 +208,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
         cell: ({ row }) => {
           const fullText = row.original.description;
           const truncatedText =
-            fullText.length > 50 ? `${fullText.slice(0, 80)}...` : fullText;
+            fullText.length > 80 ? `${fullText.slice(0, 80)}...` : fullText;
           return (
             <div className="space-y-1">
               <div className="text-base" title={fullText}>
