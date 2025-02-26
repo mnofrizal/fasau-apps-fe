@@ -21,7 +21,9 @@ export default function TaskTable({
     let filtered = [...data];
 
     if (showInProgressOnly) {
-      filtered = filtered.filter((task) => task.status === "INPROGRESS");
+      filtered = filtered.filter(
+        (task) => task.status === "INPROGRESS" || task.status === "BACKLOG"
+      );
     }
 
     filtered.sort((a, b) => a.category.localeCompare(b.category));
