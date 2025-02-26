@@ -187,12 +187,12 @@ export default function HeroGeometric({
               untuk mendukung kebutuhan Unit.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/login">
+              <Link href="/monitoring">
                 <Button
                   variant="default"
                   className="w-full rounded-xl bg-indigo-600 px-12 py-6 text-lg text-white hover:bg-indigo-700 sm:w-auto"
                 >
-                  Login
+                  Monitoring
                 </Button>
               </Link>
               <Button
