@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -9,23 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getSortedRowModel,
-  getFilteredRowModel,
-} from "@tanstack/react-table";
-import {
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Eye,
-  CalendarIcon,
-} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -39,28 +26,34 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  getFilteredRowModel,
+} from "@tanstack/react-table";
+import {
+  Search,
+  CalendarIcon,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+} from "lucide-react";
+import { format } from "date-fns";
 
-export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
-  const [sorting, setSorting] = useState([
-    {
-      id: "createdAt",
-      desc: true,
-    },
-  ]);
+export function TemuanTable({ reports, onEdit, onDelete, onViewDetails }) {
+  const [sorting, setSorting] = useState([{ id: "createdAt", desc: true }]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(8);
   const [pageIndex, setPageIndex] = useState(0);
-  const [kategoriFilter, setKategoriFilter] = useState("all");
-  const [subCategoryFilter, setSubCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [showTodayOnly, setShowTodayOnly] = useState(false);
 
@@ -73,38 +66,30 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
     setPageIndex(0);
   }, []);
 
-  const handleKategoriFilterChange = useCallback((value) => {
-    setKategoriFilter(value);
+  const handleStatusFilterChange = useCallback((value) => {
+    setStatusFilter(value);
   }, []);
 
-  const handleSubCategoryFilterChange = useCallback((value) => {
-    setSubCategoryFilter(value);
+  const handleStatusButtonClick = useCallback((value) => {
+    setStatusFilter((prev) => (prev === value ? "all" : value));
   }, []);
 
-  const handleDateRangeChange = useCallback((value) => {
-    setDateRange(value);
-  }, []);
-
-  const handleKategoriButtonClick = useCallback((value) => {
-    setKategoriFilter((prev) => (prev === value ? "all" : value));
-  }, []);
-
-  const handleSubCategoryButtonClick = useCallback((value) => {
-    setSubCategoryFilter((prev) => (prev === value ? "all" : value));
+  const handleDateSelect = useCallback((range) => {
+    setDateRange(range);
+    setShowTodayOnly(false);
   }, []);
 
   const filteredData = useMemo(() => {
-    return reports.filter((item) => {
-      // Kategori filter
-      if (kategoriFilter !== "all" && item.category !== kategoriFilter) {
+    const temuanReports = reports.filter(
+      (report) => report.subCategory === "TEMUAN"
+    );
+
+    return temuanReports.filter((item) => {
+      // Status filter
+      if (statusFilter === "COMPLETED" && item.status !== "COMPLETED") {
         return false;
       }
-
-      // SubCategory filter
-      if (
-        subCategoryFilter !== "all" &&
-        item.subCategory !== subCategoryFilter
-      ) {
+      if (statusFilter === "INCOMPLETED" && item.status === "COMPLETED") {
         return false;
       }
 
@@ -130,7 +115,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
 
       return true;
     });
-  }, [reports, kategoriFilter, subCategoryFilter, dateRange]);
+  }, [reports, statusFilter, dateRange, showTodayOnly]);
 
   const paginatedData = useMemo(() => {
     const start = pageIndex * pageSize;
@@ -154,56 +139,14 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "id",
+        id: "rowNumber",
         header: "No",
         size: 40,
-      },
-      {
-        accessorKey: "evidence",
-        header: "Eviden",
-        size: 100,
-        cell: ({ row }) => {
-          const isPDF = row.original.evidence.toLowerCase().endsWith(".pdf");
-
-          if (isPDF) {
-            return (
-              <div className="flex items-center">
-                <Button
-                  variant="link"
-                  className="h-auto p-0 font-normal"
-                  onClick={() => window.open(row.original.evidence, "_blank")}
-                >
-                  View PDF
-                </Button>
-              </div>
-            );
-          }
-
-          return row.original.evidence ? (
-            <div className="relative h-16 w-16 overflow-hidden rounded-md">
-              <Image
-                src={row.original.evidence}
-                alt={`Evidence for ${row.original.description}`}
-                fill
-                style={{ objectFit: "cover" }}
-                sizes="64px"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(row.original.evidence, "_blank");
-                }}
-                className="cursor-pointer transition-opacity hover:opacity-80"
-              />
-            </div>
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-md bg-gray-200 text-gray-600">
-              No Image
-            </div>
-          );
-        },
+        cell: ({ row }) => row.index + 1,
       },
       {
         accessorKey: "description",
-        header: "Uraian",
+        header: "Deskripsi",
         size: 400,
         cell: ({ row }) => {
           const fullText = row.original.description;
@@ -211,7 +154,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
             fullText.length > 80 ? `${fullText.slice(0, 80)}...` : fullText;
           return (
             <div className="space-y-1">
-              <div className="text-base capitalize" title={fullText}>
+              <div className="text-base" title={fullText}>
                 {truncatedText}
               </div>
             </div>
@@ -234,8 +177,55 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
         },
       },
       {
+        accessorKey: "category",
+        header: "Kategori",
+        size: 120,
+        cell: ({ row }) => {
+          return (
+            <Badge
+              variant="outline"
+              className={
+                row.original.category === "PM"
+                  ? "border-blue-500 text-blue-500"
+                  : "border-green-500 text-green-500"
+              }
+            >
+              {row.original.category}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "material",
+        header: "Material",
+        size: 120,
+        cell: ({ row }) => {
+          return (
+            <Badge variant="secondary">
+              {row.original.material?.length || 0} items
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        size: 120,
+        cell: ({ row }) => {
+          return (
+            <Badge
+              variant={
+                row.original.status === "COMPLETED" ? "success" : "secondary"
+              }
+            >
+              {row.original.status}
+            </Badge>
+          );
+        },
+      },
+      {
         accessorKey: "createdAt",
-        header: "Waktu Lapor",
+        header: "Date",
         size: 150,
         cell: ({ row }) => {
           const date = new Date(row.original.createdAt);
@@ -250,59 +240,15 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
         },
       },
       {
-        accessorKey: "category",
-        header: "Kategori",
-        size: 20,
-        cell: ({ row }) => {
-          return (
-            <div className="flex space-x-2">
-              <Badge
-                variant="outline"
-                className={`p-1 px-4 rounded-full ${
-                  row.original.category === "CM"
-                    ? "border-green-500 bg-green-50 text-green-700"
-                    : "border-purple-500 bg-purple-50 text-purple-700"
-                }`}
-              >
-                {row.original.category}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={`p-1 px-4 rounded-full ${
-                  row.original.subCategory === "TEMUAN"
-                    ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                    : "border-blue-500 bg-blue-50 text-blue-700"
-                }`}
-              >
-                {row.original.subCategory}
-              </Badge>
-            </div>
-          );
-        },
-      },
-
-      {
-        accessorKey: "status",
-        header: "STATUS",
-        size: 20,
-        cell: ({ row }) => {
-          return (
-            <Badge variant="outline" className={`p-2 px-6`}>
-              {row.original.status}
-            </Badge>
-          );
-        },
-      },
-      {
         id: "actions",
-        size: 20,
+        size: 100,
         cell: ({ row }) => {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0"
+                  size="icon"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Eye className="h-4 w-4" />
@@ -360,73 +306,37 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => handleKategoriButtonClick("PM")}
+              onClick={() => handleStatusButtonClick("INCOMPLETED")}
               className={`rounded-full px-4 shadow-none ${
-                kategoriFilter === "PM"
-                  ? "bg-purple-50 text-purple-600 border-purple-600 hover:bg-purple-100 hover:text-purple-600 dark:bg-purple-600 dark:text-white dark:hover:bg-purple-700 dark:hover:text-white"
-                  : "hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-600 dark:hover:text-white"
-              }`}
-            >
-              PM{" "}
-              <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-100">
-                {reports.filter((report) => report.category === "PM").length}
-              </span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleKategoriButtonClick("CM")}
-              className={`rounded-full px-4 shadow-none ${
-                kategoriFilter === "CM"
-                  ? "bg-green-50 text-green-600 border-green-600 hover:bg-green-100 hover:text-green-600 dark:bg-green-600 dark:text-white dark:hover:bg-green-700 dark:hover:text-white"
-                  : "hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-600 dark:hover:text-white"
-              }`}
-            >
-              CM{" "}
-              <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
-                {reports.filter((report) => report.category === "CM").length}
-              </span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSubCategoryButtonClick("TEMUAN")}
-              className={`rounded-full px-4 shadow-none ${
-                subCategoryFilter === "TEMUAN"
+                statusFilter === "INCOMPLETED"
                   ? "bg-yellow-50 text-yellow-600 border-yellow-600 hover:bg-yellow-100 hover:text-yellow-600 dark:bg-yellow-600 dark:text-white dark:hover:bg-yellow-700 dark:hover:text-white"
                   : "hover:bg-yellow-50 hover:text-yellow-600 dark:hover:bg-yellow-600 dark:hover:text-white"
               }`}
             >
-              Temuan{" "}
+              Incompleted{" "}
               <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
                 {
-                  reports.filter((report) => report.subCategory === "TEMUAN")
-                    .length
+                  reports
+                    .filter((report) => report.subCategory === "TEMUAN")
+                    .filter((report) => report.status !== "COMPLETED").length
                 }
               </span>
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                setShowTodayOnly(!showTodayOnly);
-                setDateRange({ from: null, to: null }); // Reset date range when toggling today filter
-              }}
+              onClick={() => handleStatusButtonClick("COMPLETED")}
               className={`rounded-full px-4 shadow-none ${
-                showTodayOnly
-                  ? "bg-blue-50 text-blue-600 border-blue-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700 dark:hover:text-white"
-                  : "hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-600 dark:hover:text-white"
+                statusFilter === "COMPLETED"
+                  ? "bg-green-50 text-green-600 border-green-600 hover:bg-green-100 hover:text-green-600 dark:bg-green-600 dark:text-white dark:hover:bg-green-700 dark:hover:text-white"
+                  : "hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-600 dark:hover:text-white"
               }`}
             >
-              Today{" "}
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+              Completed{" "}
+              <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
                 {
-                  reports.filter((report) => {
-                    const reportDate = new Date(report.createdAt);
-                    const today = new Date();
-                    return (
-                      reportDate.getDate() === today.getDate() &&
-                      reportDate.getMonth() === today.getMonth() &&
-                      reportDate.getFullYear() === today.getFullYear()
-                    );
-                  }).length
+                  reports
+                    .filter((report) => report.subCategory === "TEMUAN")
+                    .filter((report) => report.status === "COMPLETED").length
                 }
               </span>
             </Button>
@@ -434,30 +344,14 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Select
-            value={kategoriFilter}
-            onValueChange={handleKategoriFilterChange}
-          >
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Kategori" />
+              <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="PM">PM</SelectItem>
-              <SelectItem value="CM">CM</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={subCategoryFilter}
-            onValueChange={handleSubCategoryFilterChange}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Sub Kategori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="TEMUAN">TEMUAN</SelectItem>
-              <SelectItem value="LAPORAN">LAPORAN</SelectItem>
+              <SelectItem value="INCOMPLETED">Incompleted</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
             </SelectContent>
           </Select>
           <Popover>
@@ -489,7 +383,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
                 mode="range"
                 defaultMonth={dateRange?.from}
                 selected={dateRange}
-                onSelect={handleDateRangeChange}
+                onSelect={handleDateSelect}
                 numberOfMonths={2}
               />
             </PopoverContent>

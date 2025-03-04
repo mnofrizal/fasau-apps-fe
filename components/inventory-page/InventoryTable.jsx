@@ -28,25 +28,29 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronUp, Search, ArrowUpDown } from "lucide-react";
+import { EditInventoryDialog } from "./EditInventoryDialog";
 
-export function InventoryTable({ inventory, isLoading }) {
+export function InventoryTable({ inventory, isLoading, onSuccess }) {
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
   const [locationFilter, setLocationFilter] = useState("all");
 
-  const locations = useMemo(() => {
-    if (!inventory || !inventory.length) return [];
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  const { locations, categories, filteredData } = useMemo(() => {
+    if (!inventory || !inventory.length)
+      return { locations: [], categories: [], filteredData: [] };
+
     const uniqueLocations = new Set(
       inventory.map((item) => item.location).filter(Boolean)
     );
-    return Array.from(uniqueLocations);
-  }, [inventory]);
+    const uniqueCategories = new Set(
+      inventory.map((item) => item.category).filter(Boolean)
+    );
 
-  const filteredData = useMemo(() => {
-    if (!inventory) return [];
-    return inventory.filter((item) => {
+    const filtered = inventory.filter((item) => {
       if (
         locationFilter &&
         locationFilter !== "all" &&
@@ -54,9 +58,22 @@ export function InventoryTable({ inventory, isLoading }) {
       ) {
         return false;
       }
+      if (
+        categoryFilter &&
+        categoryFilter !== "all" &&
+        item.category !== categoryFilter
+      ) {
+        return false;
+      }
       return true;
     });
-  }, [inventory, locationFilter]);
+
+    return {
+      locations: Array.from(uniqueLocations),
+      categories: Array.from(uniqueCategories),
+      filteredData: filtered,
+    };
+  }, [inventory, locationFilter, categoryFilter]);
 
   const columns = [
     {
@@ -96,7 +113,9 @@ export function InventoryTable({ inventory, isLoading }) {
       },
       size: 100,
       cell: ({ row }) => (
-        <div className="text-center font-medium">{row.original.quantity}</div>
+        <div className="text-center font-medium">
+          {row.original.quantity} {row.original.unit || "pcs"}
+        </div>
       ),
     },
     {
@@ -160,6 +179,35 @@ export function InventoryTable({ inventory, isLoading }) {
       },
     },
     {
+      accessorKey: "category",
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex cursor-pointer items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Category
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        );
+      },
+      size: 120,
+      cell: ({ row }) => (
+        <div>
+          {row.original.category ? (
+            <Badge
+              variant="outline"
+              className="bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300"
+            >
+              {row.original.category}
+            </Badge>
+          ) : (
+            <span className="text-gray-500">Not specified</span>
+          )}
+        </div>
+      ),
+    },
+    {
       accessorKey: "notes",
       header: "Notes",
       size: 200,
@@ -168,6 +216,21 @@ export function InventoryTable({ inventory, isLoading }) {
           {row.original.notes || "-"}
         </div>
       ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      size: 100,
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <EditInventoryDialog
+              item={row.original}
+              onSuccess={isLoading ? undefined : onSuccess}
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -220,19 +283,35 @@ export function InventoryTable({ inventory, isLoading }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locations.map((location) => (
-                <SelectItem key={location} value={location}>
-                  {location}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

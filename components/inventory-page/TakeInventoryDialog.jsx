@@ -38,7 +38,9 @@ import { Badge } from "@/components/ui/badge";
 export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [items, setItems] = useState([{ name: "", quantity: 1, notes: "" }]);
+  const [items, setItems] = useState([
+    { name: "", category: "", quantity: 1, notes: "", unit: "pcs" },
+  ]);
   const { toast } = useToast();
 
   const form = useForm({
@@ -58,8 +60,10 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
       if (!itemMap[item.name]) {
         itemMap[item.name] = {
           name: item.name,
+          category: item.category,
           quantity: item.quantity,
           location: item.location,
+          unit: item.unit || "pcs",
         };
       } else {
         itemMap[item.name].quantity += item.quantity;
@@ -72,7 +76,10 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
   }, [inventory]);
 
   const addItem = () => {
-    setItems([...items, { name: "", quantity: 1, notes: "" }]);
+    setItems([
+      ...items,
+      { name: "", category: "", quantity: 1, notes: "", unit: "pcs" },
+    ]);
   };
 
   const removeItem = (index) => {
@@ -83,7 +90,18 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
 
   const updateItem = (index, field, value) => {
     const updatedItems = [...items];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    if (field === "name") {
+      // When name is selected, also set the category and unit
+      const selectedItem = availableItems.find((item) => item.name === value);
+      updatedItems[index] = {
+        ...updatedItems[index],
+        name: value,
+        category: selectedItem ? selectedItem.category : "",
+        unit: selectedItem ? selectedItem.unit : "pcs",
+      };
+    } else {
+      updatedItems[index] = { ...updatedItems[index], [field]: value };
+    }
     setItems(updatedItems);
   };
 
@@ -132,7 +150,7 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
         items: validItems,
       };
 
-      const response = await InventoryAPI.takeItems(data);
+      const response = await InventoryAPI.recordMovement(data);
 
       if (response.success) {
         toast({
@@ -169,7 +187,7 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
       notes: "",
       createdBy: "",
     });
-    setItems([{ name: "", quantity: 1, notes: "" }]);
+    setItems([{ name: "", category: "", quantity: 1, notes: "", unit: "pcs" }]);
   };
 
   // Get available quantity for a specific item
@@ -186,19 +204,33 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
     return item ? item.location : "";
   };
 
+  // Get category for a specific item
+  const getItemCategory = (itemName) => {
+    if (!itemName) return "";
+    const item = availableItems.find((i) => i.name === itemName);
+    return item ? item.category : "";
+  };
+
+  // Get unit for a specific item
+  const getItemUnit = (itemName) => {
+    if (!itemName) return "pcs";
+    const item = availableItems.find((i) => i.name === itemName);
+    return item ? item.unit : "pcs";
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-orange-600 hover:bg-orange-700">
           <LogOut className="mr-2 h-4 w-4" />
-          Take Items
+          Barang Keluar
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Take Items from Inventory</DialogTitle>
+          <DialogTitle>Barang Keluar</DialogTitle>
           <DialogDescription>
-            Enter the details of the items being taken out of inventory.
+            Masukkan detail barang yang akan diambil dari inventory.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -278,6 +310,7 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
                   {items.map((item, index) => {
                     const availableQty = getAvailableQuantity(item.name);
                     const location = getItemLocation(item.name);
+                    const category = getItemCategory(item.name);
                     const isInvalid = item.name && item.quantity > availableQty;
 
                     return (
@@ -329,14 +362,15 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
                                     value={availableItem.name}
                                   >
                                     {availableItem.name} (Available:{" "}
-                                    {availableItem.quantity})
+                                    {availableItem.quantity}{" "}
+                                    {availableItem.unit})
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                             {item.name && (
                               <div className="mt-1 flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground">
+                                <div className="flex gap-2">
                                   {location && (
                                     <Badge
                                       variant="outline"
@@ -345,7 +379,15 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
                                       {location}
                                     </Badge>
                                   )}
-                                </span>
+                                  {category && (
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300"
+                                    >
+                                      {category}
+                                    </Badge>
+                                  )}
+                                </div>
                                 <span
                                   className={
                                     isInvalid
@@ -353,39 +395,79 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
                                       : "text-muted-foreground"
                                   }
                                 >
-                                  Available: {availableQty}
+                                  Available: {availableQty} {item.unit}
                                 </span>
                               </div>
                             )}
                           </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Quantity <span className="text-red-500">*</span>
-                            </label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max={availableQty}
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateItem(
-                                  index,
-                                  "quantity",
-                                  parseInt(e.target.value) || 1
-                                )
-                              }
-                              className={
-                                isInvalid
-                                  ? "border-red-300 focus:ring-red-500"
-                                  : ""
-                              }
-                              required
-                            />
-                            {isInvalid && (
-                              <p className="text-xs text-red-600">
-                                Quantity exceeds available stock
-                              </p>
-                            )}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Quantity <span className="text-red-500">*</span>
+                              </label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max={availableQty}
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  updateItem(
+                                    index,
+                                    "quantity",
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                                className={
+                                  isInvalid
+                                    ? "border-red-300 focus:ring-red-500"
+                                    : ""
+                                }
+                                required
+                              />
+                              {isInvalid && (
+                                <p className="text-xs text-red-600">
+                                  Quantity exceeds available stock
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Unit <span className="text-red-500">*</span>
+                              </label>
+                              <Select
+                                value={item.unit}
+                                onValueChange={(value) =>
+                                  updateItem(index, "unit", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[
+                                    "pcs",
+                                    "box",
+                                    "kg",
+                                    "meter",
+                                    "roll",
+                                    "liter",
+                                    "pack",
+                                    "set",
+                                    "buah",
+                                    "unit",
+                                    "lembar",
+                                    "pal",
+                                    "galon",
+                                    "biji",
+                                    "kaleng",
+                                  ].map((unit) => (
+                                    <SelectItem key={unit} value={unit}>
+                                      {unit}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                           <div className="col-span-2 space-y-2">
                             <label className="text-sm font-medium">Notes</label>

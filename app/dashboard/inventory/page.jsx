@@ -94,10 +94,18 @@ export default function InventoryPage() {
           <TabsTrigger value="transactions">Transaction History</TabsTrigger>
         </TabsList>
         <TabsContent value="inventory">
-          <InventoryTable inventory={inventory} isLoading={isLoading} />
+          <InventoryTable
+            inventory={inventory}
+            isLoading={isLoading}
+            onSuccess={refreshData}
+          />
         </TabsContent>
         <TabsContent value="transactions">
-          <TransactionTable transactions={transactions} isLoading={isLoading} />
+          <TransactionTable
+            transactions={transactions}
+            isLoading={isLoading}
+            onSuccess={refreshData}
+          />
         </TabsContent>
       </Tabs>
       <Toaster />

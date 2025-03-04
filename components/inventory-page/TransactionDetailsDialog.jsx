@@ -89,6 +89,7 @@ export function TransactionDetailsDialog({ transaction, open, onOpenChange }) {
                     <TableRow>
                       <TableHead className="w-[40px]">No</TableHead>
                       <TableHead>Item Name</TableHead>
+                      <TableHead>Category</TableHead>
                       <TableHead>Quantity</TableHead>
                       {transaction.type === "IN" && (
                         <TableHead>Location</TableHead>
@@ -98,34 +99,51 @@ export function TransactionDetailsDialog({ transaction, open, onOpenChange }) {
                   </TableHeader>
                   <TableBody>
                     {transaction.items && transaction.items.length > 0 ? (
-                      transaction.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell className="font-medium">
-                            {item.name}
-                          </TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          {transaction.type === "IN" && (
+                      transaction.items.map((transactionItem, index) => {
+                        const item = transactionItem.item; // Access the nested item data
+                        return (
+                          <TableRow key={index}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell className="font-medium">
+                              {item.name}
+                            </TableCell>
                             <TableCell>
-                              {item.location ? (
+                              {item.category ? (
                                 <Badge
                                   variant="outline"
-                                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300"
+                                  className="bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300"
                                 >
-                                  {item.location}
+                                  {item.category}
                                 </Badge>
                               ) : (
                                 "-"
                               )}
                             </TableCell>
-                          )}
-                          <TableCell>{item.notes || "-"}</TableCell>
-                        </TableRow>
-                      ))
+                            <TableCell>{transactionItem.quantity}</TableCell>
+                            {transaction.type === "IN" && (
+                              <TableCell>
+                                {item.location ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300"
+                                  >
+                                    {item.location}
+                                  </Badge>
+                                ) : (
+                                  "-"
+                                )}
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              {transactionItem.notes || "-"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     ) : (
                       <TableRow>
                         <TableCell
-                          colSpan={transaction.type === "IN" ? 5 : 4}
+                          colSpan={transaction.type === "IN" ? 6 : 5}
                           className="h-24 text-center"
                         >
                           No items found in this transaction.

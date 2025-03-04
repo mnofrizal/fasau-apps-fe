@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { TransactionDetailsDialog } from "./TransactionDetailsDialog";
+import { EditTransactionDialog } from "./EditTransactionDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +46,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-export function TransactionTable({ transactions, isLoading }) {
+export function TransactionTable({ transactions, isLoading, onSuccess }) {
   const [sorting, setSorting] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -205,6 +206,24 @@ export function TransactionTable({ transactions, isLoading }) {
           {row.original.notes || "-"}
         </div>
       ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      size: 100,
+      cell: ({ row }) => {
+        return (
+          <div
+            className="flex items-center justify-end gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EditTransactionDialog
+              transaction={row.original}
+              onSuccess={isLoading ? undefined : onSuccess}
+            />
+          </div>
+        );
+      },
     },
   ];
 
