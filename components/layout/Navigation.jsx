@@ -45,6 +45,7 @@ export default function Navigation() {
                 { href: "/dashboard/recent", label: "Laporan" },
                 { href: "/dashboard/pm", label: "PM" },
                 { href: "/dashboard/acara", label: "Acara" },
+                { href: "/dashboard/inventory", label: "Inventory" },
               ].map((link) => (
                 <a
                   key={link.href}
