@@ -43,7 +43,9 @@ import {
   Calendar as CalendarIcon,
   ArrowUpDown,
   ClipboardList,
+  DownloadCloud,
 } from "lucide-react";
+import { InventoryAPI } from "@/lib/api/inventory";
 import { format } from "date-fns";
 
 export function TransactionTable({ transactions, isLoading, onSuccess }) {
@@ -212,11 +214,41 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
       header: "Actions",
       size: 100,
       cell: ({ row }) => {
+        const handleDownloadPDF = async (e) => {
+          e.stopPropagation();
+          try {
+            const blob = await InventoryAPI.downloadTransactionPDF(
+              row.original.id
+            );
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `transaction-${row.original.reference}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          } catch (error) {
+            console.error("Error downloading PDF:", error);
+          }
+        };
+
         return (
           <div
             className="flex items-center justify-end gap-2"
             onClick={(e) => e.stopPropagation()}
           >
+            {row.original.type === "OUT" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDownloadPDF}
+                className="h-8 w-8"
+                title="Download Berita Acara"
+              >
+                <DownloadCloud className="h-4 w-4" />
+              </Button>
+            )}
             <EditTransactionDialog
               transaction={row.original}
               onSuccess={isLoading ? undefined : onSuccess}
