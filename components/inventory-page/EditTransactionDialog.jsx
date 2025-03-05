@@ -46,6 +46,7 @@ export function EditTransactionDialog({ transaction, onSuccess }) {
     defaultValues: {
       reference: transaction?.reference || "",
       notes: transaction?.notes || "",
+      to: transaction?.to || "",
     },
   });
 
@@ -150,6 +151,22 @@ export function EditTransactionDialog({ transaction, onSuccess }) {
                 </FormItem>
               )}
             />
+
+            {transaction?.type === "OUT" && (
+              <FormField
+                control={form.control}
+                name="to"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>To Department/Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. IT Department" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

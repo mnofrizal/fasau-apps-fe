@@ -71,6 +71,15 @@ export function TransactionDetailsDialog({ transaction, open, onOpenChange }) {
               </div>
               <div className="mt-1">{transaction.createdBy || "Unknown"}</div>
             </div>
+
+            {transaction.type === "OUT" && (
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  To Department/Location
+                </div>
+                <div className="mt-1">{transaction.to || "Not specified"}</div>
+              </div>
+            )}
           </div>
 
           <div>

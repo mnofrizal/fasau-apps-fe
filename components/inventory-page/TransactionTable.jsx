@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { enGB, id } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -44,9 +45,13 @@ import {
   ArrowUpDown,
   ClipboardList,
   DownloadCloud,
+  FileDown,
+  Package,
+  ArrowDown,
+  ArrowUp,
 } from "lucide-react";
 import { InventoryAPI } from "@/lib/api/inventory";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 export function TransactionTable({ transactions, isLoading, onSuccess }) {
   const [sorting, setSorting] = useState([]);
@@ -99,13 +104,22 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
       accessorKey: "type",
       header: ({ column }) => {
         return (
-          <div
-            className="flex cursor-pointer items-center"
+          <Button
+            variant="ghost"
+            className="flex h-8 items-center gap-1 p-0 font-semibold hover:bg-transparent"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Type
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
+            Tipe
+            <div className="ml-1 flex h-4 w-4 items-center justify-center">
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+              )}
+            </div>
+          </Button>
         );
       },
       size: 100,
@@ -115,11 +129,21 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
           <Badge
             className={`${
               type === "IN"
-                ? "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400"
-                : "bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/20 dark:text-orange-400"
-            }`}
+                ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400"
+                : "bg-orange-100 text-orange-800 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400"
+            } px-3 py-1 font-medium`}
           >
-            {type}
+            {type === "IN" ? (
+              <>
+                <ArrowDown className="mr-2 h-4 w-4" />
+                MASUK
+              </>
+            ) : (
+              <>
+                <ArrowUp className="mr-2 h-4 w-4" />
+                KELUAR
+              </>
+            )}
           </Badge>
         );
       },
@@ -128,43 +152,60 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
       accessorKey: "reference",
       header: ({ column }) => {
         return (
-          <div
-            className="flex cursor-pointer items-center"
+          <Button
+            variant="ghost"
+            className="flex h-8 items-center gap-1 p-0 font-semibold hover:bg-transparent"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Reference
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
+            Referensi/Memo
+            <div className="ml-1 flex h-4 w-4 items-center justify-center">
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+              )}
+            </div>
+          </Button>
         );
       },
       size: 150,
       cell: ({ row }) => (
-        <div className="font-medium">{row.original.reference}</div>
+        <div className="text-xs font-medium">{row.original.reference}</div>
       ),
     },
     {
       accessorKey: "createdAt",
       header: ({ column }) => {
         return (
-          <div
-            className="flex cursor-pointer items-center"
+          <Button
+            variant="ghost"
+            className="flex h-8 items-center gap-1 p-0 font-semibold hover:bg-transparent"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
+            Tanggal
+            <div className="ml-1 flex h-4 w-4 items-center justify-center">
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+              )}
+            </div>
+          </Button>
         );
       },
       size: 150,
       cell: ({ row }) => {
-        const date = new Date(row.original.createdAt);
+        const date = parseISO(row.original.createdAt);
         return (
-          <div className="text-muted-foreground">
-            {date.toLocaleDateString()}{" "}
-            {date.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+          <div className="flex flex-col text-xs">
+            <span>{format(date, "d MMM yyyy", { locale: id })}</span>
+            <span className="text-xs text-muted-foreground">
+              {format(date, "HH:mm", { locale: id })}
+            </span>
           </div>
         );
       },
@@ -173,45 +214,90 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
       accessorKey: "createdBy",
       header: ({ column }) => {
         return (
-          <div
-            className="flex cursor-pointer items-center"
+          <Button
+            variant="ghost"
+            className="flex h-8 items-center gap-1 p-0 font-semibold hover:bg-transparent"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Created By
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
+            Diinput
+            <div className="ml-1 flex h-4 w-4 items-center justify-center">
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+              )}
+            </div>
+          </Button>
         );
       },
       size: 150,
-      cell: ({ row }) => <div>{row.original.createdBy}</div>,
+      cell: ({ row }) => (
+        <div className="text-xs">{row.original.createdBy}</div>
+      ),
+    },
+    {
+      accessorKey: "to",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            className="flex h-8 items-center gap-1 p-0 font-semibold hover:bg-transparent"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Tujuan
+            <div className="ml-1 flex h-4 w-4 items-center justify-center">
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
+              )}
+            </div>
+          </Button>
+        );
+      },
+      size: 150,
+      cell: ({ row }) => {
+        if (row.original.type !== "OUT" || !row.original.to) {
+          return <div className="text-xs text-muted-foreground">-</div>;
+        }
+        return <div className="text-xs">{row.original.to}</div>;
+      },
     },
     {
       accessorKey: "items",
-      header: "Items",
+      header: "Barang",
       size: 100,
       cell: ({ row }) => {
         const itemCount = row.original.items?.length || 0;
         return (
-          <div className="flex items-center text-muted-foreground">
-            <ClipboardList className="mr-2 h-4 w-4" />
-            {itemCount} {itemCount === 1 ? "item" : "items"}
+          <div className="flex items-center">
+            <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10">
+              <Package className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <span>
+              {itemCount} {itemCount === 1 ? "barang" : "barang"}
+            </span>
           </div>
         );
       },
     },
     {
       accessorKey: "notes",
-      header: "Notes",
+      header: "Catatan",
       size: 200,
       cell: ({ row }) => (
-        <div className="line-clamp-2 max-w-[400px]">
+        <div className="line-clamp-2 max-w-[400px] text-xs text-muted-foreground">
           {row.original.notes || "-"}
         </div>
       ),
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "Aksi",
       size: 100,
       cell: ({ row }) => {
         const handleDownloadPDF = async (e) => {
@@ -243,10 +329,10 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
                 variant="ghost"
                 size="icon"
                 onClick={handleDownloadPDF}
-                className="h-8 w-8"
-                title="Download Berita Acara"
+                className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
+                title="Unduh Berita Acara"
               >
-                <DownloadCloud className="h-4 w-4" />
+                <FileDown className="h-4 w-4 text-red-600" />
               </Button>
             )}
             <EditTransactionDialog
@@ -314,8 +400,8 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="IN">IN</SelectItem>
-              <SelectItem value="OUT">OUT</SelectItem>
+              <SelectItem value="IN">MASUK</SelectItem>
+              <SelectItem value="OUT">KELUAR</SelectItem>
             </SelectContent>
           </Select>
 
