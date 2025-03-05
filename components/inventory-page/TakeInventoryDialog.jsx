@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LogOut, Plus, X, Package, AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { materialUnits } from "@/contants/mockData";
 
 export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
   const [open, setOpen] = useState(false);
@@ -444,23 +445,7 @@ export function TakeInventoryDialog({ onSuccess, inventory = [] }) {
                                   <SelectValue placeholder="Select unit" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {[
-                                    "pcs",
-                                    "box",
-                                    "kg",
-                                    "meter",
-                                    "roll",
-                                    "liter",
-                                    "pack",
-                                    "set",
-                                    "buah",
-                                    "unit",
-                                    "lembar",
-                                    "pal",
-                                    "galon",
-                                    "biji",
-                                    "kaleng",
-                                  ].map((unit) => (
+                                  {materialUnits.map((unit) => (
                                     <SelectItem key={unit} value={unit}>
                                       {unit}
                                     </SelectItem>

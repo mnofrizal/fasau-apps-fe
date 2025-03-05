@@ -73,7 +73,7 @@ export function EditRecentDialog({
         <DialogContent
           className={`p-0 transition-all ${
             editForm.subCategory === "TEMUAN"
-              ? "sm:max-w-[900px]"
+              ? "sm:max-w-[1020px]"
               : "sm:max-w-[500px]"
           }`}
         >

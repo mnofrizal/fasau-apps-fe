@@ -25,24 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const UNITS = [
-  "pcs",
-  "box",
-  "kg",
-  "meter",
-  "roll",
-  "liter",
-  "pack",
-  "set",
-  "buah",
-  "unit",
-  "lembar",
-  "pal",
-  "galon",
-  "biji",
-  "kaleng",
-];
+import { materialUnits } from "@/contants/mockData";
 
 export function AddMaterialDialog({ open, onOpenChange, onSave }) {
   const [materialForm, setMaterialForm] = useState({
@@ -199,33 +182,31 @@ export function AddMaterialDialog({ open, onOpenChange, onSave }) {
                       <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
                         Loading...
                       </div>
-                    ) : searchResults.length === 0 ? (
-                      <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                        Tambahkan {searchTerm} sebagai material
-                      </div>
                     ) : (
-                      <div className="py-1">
-                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                          Inventory Items
-                        </div>
-                        {searchResults.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex cursor-default flex-col items-start px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-                            onClick={() => handleSelectItem(item)}
-                          >
-                            <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.category}{" "}
-                              {item.quantity > 0
-                                ? `(${item.quantity} ${
-                                    item.unit || "pcs"
-                                  } available)`
-                                : "(Out of stock)"}
-                            </div>
+                      searchResults.length !== 0 && (
+                        <div className="py-1">
+                          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                            Inventory Items
                           </div>
-                        ))}
-                      </div>
+                          {searchResults.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex cursor-default flex-col items-start px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => handleSelectItem(item)}
+                            >
+                              <div className="font-medium">{item.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {item.category}{" "}
+                                {item.quantity > 0
+                                  ? `(${item.quantity} ${
+                                      item.unit || "pcs"
+                                    } available)`
+                                  : "(Out of stock)"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
@@ -261,7 +242,7 @@ export function AddMaterialDialog({ open, onOpenChange, onSave }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {UNITS.map((unit) => (
+                    {materialUnits.map((unit) => (
                       <SelectItem key={unit} value={unit}>
                         {unit}
                       </SelectItem>

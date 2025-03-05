@@ -472,3 +472,24 @@ export const acaraData = [
     keterangan: "Annual team building event",
   },
 ];
+
+export const materialUnits = [
+  "pcs",
+  "box",
+  "kg",
+  "meter",
+  "roll",
+  "liter",
+  "pack",
+  "set",
+  "buah",
+  "unit",
+  "lembar",
+  "pal",
+  "galon",
+  "biji",
+  "kaleng",
+  "sak",
+  "karung",
+  "m3",
+];

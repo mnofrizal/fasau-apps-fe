@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { materialUnits } from "@/contants/mockData";
 
 export function AddInventoryDialog({ onSuccess }) {
   const [open, setOpen] = useState(false);
@@ -487,23 +488,7 @@ export function AddInventoryDialog({ onSuccess }) {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {[
-                                  "pcs",
-                                  "box",
-                                  "kg",
-                                  "meter",
-                                  "roll",
-                                  "liter",
-                                  "pack",
-                                  "set",
-                                  "buah",
-                                  "unit",
-                                  "lembar",
-                                  "pal",
-                                  "galon",
-                                  "biji",
-                                  "kaleng",
-                                ].map((unit) => (
+                                {materialUnits.map((unit) => (
                                   <SelectItem key={unit} value={unit}>
                                     {unit}
                                   </SelectItem>
