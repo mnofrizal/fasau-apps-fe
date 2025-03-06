@@ -309,7 +309,7 @@ export function TransactionTable({ transactions, isLoading, onSuccess }) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `transaction-${row.original.reference}.pdf`;
+            a.download = `BA-${row.original.reference}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

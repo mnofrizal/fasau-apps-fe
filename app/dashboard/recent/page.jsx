@@ -82,7 +82,7 @@ export default function RecentTasksPage() {
             <Button
               onClick={async () => {
                 const data = await prepareReportData(reports, "laporan");
-                exportToExcel(data, "laporan-export", "laporan");
+                await exportToExcel(data, "laporan-export", "laporan");
               }}
               variant="outline"
               size="sm"
@@ -92,7 +92,7 @@ export default function RecentTasksPage() {
             <Button
               onClick={async () => {
                 const data = await prepareReportData(reports, "temuan");
-                exportToExcel(data, "temuan-export", "temuan");
+                await exportToExcel(data, "temuan-export", "temuan");
               }}
               variant="outline"
               size="sm"

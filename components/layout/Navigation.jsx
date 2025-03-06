@@ -71,7 +71,7 @@ export default function Navigation() {
                 <div className="flex-shrink-0 cursor-pointer">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-600">
                     <span className="text-base font-semibold text-white">
-                      JD
+                      AM
                     </span>
                   </div>
                 </div>

@@ -95,6 +95,26 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
 
   const filteredData = useMemo(() => {
     return reports.filter((item) => {
+      // Global search filter
+      if (globalFilter && globalFilter.trim() !== "") {
+        const searchTerm = globalFilter.toLowerCase();
+        const fieldsToSearch = [
+          item.description,
+          item.pelapor,
+          item.phone,
+          item.status,
+          item.category,
+          item.subCategory,
+          item.id?.toString(),
+        ];
+
+        const matchesSearch = fieldsToSearch.some(
+          (field) => field && field.toLowerCase().includes(searchTerm)
+        );
+
+        if (!matchesSearch) return false;
+      }
+
       // Kategori filter
       if (kategoriFilter !== "all" && item.category !== kategoriFilter) {
         return false;
@@ -130,7 +150,14 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
 
       return true;
     });
-  }, [reports, kategoriFilter, subCategoryFilter, dateRange]);
+  }, [
+    reports,
+    globalFilter,
+    kategoriFilter,
+    subCategoryFilter,
+    dateRange,
+    showTodayOnly,
+  ]);
 
   const paginatedData = useMemo(() => {
     const start = pageIndex * pageSize;
@@ -335,13 +362,10 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      globalFilter,
     },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
   });
 
   return (
@@ -580,7 +604,7 @@ export function RecentTasksTable({ reports, onEdit, onDelete, onViewDetails }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[5, 10, 20, 30, 40, 50].map((size) => (
+                {[5, 8, 10, 20, 30, 40, 50].map((size) => (
                   <SelectItem key={size} value={size.toString()}>
                     {size}
                   </SelectItem>

@@ -85,6 +85,25 @@ export function TemuanTable({ reports, onEdit, onDelete, onViewDetails }) {
     );
 
     return temuanReports.filter((item) => {
+      // Global search filter
+      if (globalFilter && globalFilter.trim() !== "") {
+        const searchTerm = globalFilter.toLowerCase();
+        const fieldsToSearch = [
+          item.description,
+          item.pelapor,
+          item.phone,
+          item.status,
+          item.category,
+          item.id?.toString(),
+        ];
+
+        const matchesSearch = fieldsToSearch.some(
+          (field) => field && field.toLowerCase().includes(searchTerm)
+        );
+
+        if (!matchesSearch) return false;
+      }
+
       // Status filter
       if (statusFilter === "COMPLETED" && item.status !== "COMPLETED") {
         return false;
@@ -115,7 +134,7 @@ export function TemuanTable({ reports, onEdit, onDelete, onViewDetails }) {
 
       return true;
     });
-  }, [reports, statusFilter, dateRange, showTodayOnly]);
+  }, [reports, globalFilter, statusFilter, dateRange, showTodayOnly]);
 
   const paginatedData = useMemo(() => {
     const start = pageIndex * pageSize;
@@ -281,13 +300,10 @@ export function TemuanTable({ reports, onEdit, onDelete, onViewDetails }) {
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      globalFilter,
     },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
   });
 
   return (

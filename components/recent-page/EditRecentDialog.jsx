@@ -368,6 +368,21 @@ export function EditRecentDialog({
                                           <p className="mt-1 text-sm text-muted-foreground">
                                             {history.notes}
                                           </p>
+                                          {history.status === "COMPLETED" &&
+                                            reportToEdit?.evidenceDone && (
+                                              <div className="mt-3 space-y-2">
+                                                <Label>Evidence</Label>
+                                                <div className="relative h-48 w-full overflow-hidden rounded-lg">
+                                                  <img
+                                                    src={
+                                                      reportToEdit.evidenceDone
+                                                    }
+                                                    alt="Evidence"
+                                                    className="h-full w-full object-cover"
+                                                  />
+                                                </div>
+                                              </div>
+                                            )}
                                         </div>
                                       </div>
                                     </div>
