@@ -9,7 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { pmSchedule, pmAssets, pmTeams } from "@/contants/mockData";
+import { PMAPI } from "@/lib/api/pm";
 
 export default function PMScheduleDisplay() {
   const startDate = new Date("2025-01-01");
@@ -18,6 +20,23 @@ export default function PMScheduleDisplay() {
 
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Function to handle sending PM today
+  const handleSendPMToday = async () => {
+    setIsLoading(true);
+    try {
+      const result = await PMAPI.sendPMToday(false);
+      // Handle success - you might want to show a toast notification
+      console.log("PM sent successfully:", result);
+      alert("PM berhasil dikirim untuk hari ini!");
+    } catch (error) {
+      console.error("Error sending PM:", error);
+      alert("Terjadi kesalahan saat mengirim PM. Silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Get the first day of selected month
   const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
@@ -135,6 +154,13 @@ export default function PMScheduleDisplay() {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            onClick={handleSendPMToday}
+            disabled={isLoading}
+            className="whitespace-nowrap"
+          >
+            {isLoading ? "Mengirim..." : "Send PM Today"}
+          </Button>
         </div>
       </div>
 
