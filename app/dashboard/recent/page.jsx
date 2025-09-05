@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { exportToExcel, prepareReportData } from "@/lib/utils/export";
+import {
+  exportToExcel,
+  exportToJSON,
+  prepareReportData,
+} from "@/lib/utils/export";
 import { motion, AnimatePresence } from "framer-motion";
 import { RecentTasksTable } from "@/components/recent-page/RecentTasksTable";
 import { TemuanTable } from "@/components/recent-page/TemuanTable";
@@ -88,6 +92,16 @@ export default function RecentTasksPage() {
               size="sm"
             >
               Export Laporan
+            </Button>
+            <Button
+              onClick={async () => {
+                const data = await prepareReportData(reports, "laporan");
+                await exportToJSON(data, "laporan-export", "laporan");
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Export Laporan JSON
             </Button>
             <Button
               onClick={async () => {
